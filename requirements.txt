@@ -2,3 +2,7 @@ numpy
 ipywidgets
 nbinteract
 pandas
+matplotlib.pyplot
+matplotlib.ticker
+IPython.display
+chord
