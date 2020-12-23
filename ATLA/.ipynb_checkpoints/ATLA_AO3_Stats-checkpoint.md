@@ -28,10 +28,10 @@ Another demonstration of this phenomenon is the Tumblr Fandometrics [2020′s To
 
 ## Notes
 
-**How did you make the chord chart?**
+**How did you make the chord chart?**  
 I used Shahini Rostami's [chord generator](https://github.com/shahinrostami/chord) package. 
 
-**Why only include the top two ships tagged on each fic?**
+**Why only include the top two ships tagged on each fic?**  
 I only wanted to include main ships in a fic, not side ships, assuming that ships are tagged in order of importance. Over 70% of fics had two or fewer ships tagged. 
 
 ---
