@@ -18,7 +18,7 @@ I'll admit I was a little surprised by the results. From what I knew (and the ca
 ![atla_chord_zuko_hover](atla_2020_chord_zuko.png)
 
 What surprised me the most was the popularity of Zuko/Sokka, a ship I had never heard of before. Given the recent explosion of fic writing, I was curious if this was a new phenomenon, so I plotted the occurrence of Zuko/Sokka over time, compared to the just slightly more popular Zuko/Katara (Side note: this sibling rivalry has the vibe of an unfortunate /r/relationships post). 
-![Zuko_playing_this_family](Zuko_fam.png)
+![Zuko_playing_this_family](Zuko_Fam.png)
 
 While Zuko/Sokka has provided a decent showing over the years, it turns out that 2020 is the first year in which it overtook the juggernaut Zutara. 
 
