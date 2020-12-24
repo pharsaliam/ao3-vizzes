@@ -6,7 +6,7 @@ On May 15th, 2020, Netflix added <i>Avatar: The Last Airbender</i> back to the p
 Through the resurgence, the precentage of fic tagged with a romantic or sexual relationship between characters in the show has remained high, just over 70%. 
 ![ATL pct ship over time](atla_pct_ship_over_time.png)
 
-Ever since I saw this [chord chart](https://www.futurephotons.io/ao3stats/) that visualizes the ships in Harry Potter AO3 fic, I've been wanting to create my own, ideally for a multishipping fandom. A couple of my friends suggested <i>ATLA</i> and I was curious. Even though I've tragically never watched the show, through fandom osmosis, I was aware of its shipping wars. I mean, it's the example image on the TV Tropes page for [Ship-to-Ship Combat](https://tvtropes.org/pmwiki/pmwiki.php/Main/ShipToShipCombat) for crying out loud. 
+Ever since I saw this [chord chart](https://www.futurephotons.io/ao3stats/) that visualizes the ships in Harry Potter AO3 fic, I've been wanting to create my own, ideally for a multishipping fandom. A couple of my friends suggested <i>ATLA</i> and I was curious. Even though I've tragically never watched the show, through fandom osmosis, I was aware of its shipping wars. I mean, it's the example image on the TV Tropes page for [Ship-to-Ship Combat](https://tvtropes.org/pmwiki/pmwiki.php/Main/ShipToShipCombat) for crying out loud.  
 ![Ship-to-Ship Combat TV Tropes](ship-to-ship-combat.png)
 
 After scraping all the <i>ATLA</i> AO3 fic as of December 5th, 2020 and filtering for ships with at least 50 occurrences, including only the the top two tagged ships per fic (see Notes), I was left with this chord chart between 23 total characters. 
@@ -35,4 +35,4 @@ I used Shahini Rostami's [chord generator](https://github.com/shahinrostami/chor
 I only wanted to include main ships in a fic, not side ships, assuming that ships are tagged in order of importance. Over 70% of fics had two or fewer ships tagged. 
 
 ---
-Last Updated: December 22nd, 2020 
+Last Updated: December 23rd, 2020 
