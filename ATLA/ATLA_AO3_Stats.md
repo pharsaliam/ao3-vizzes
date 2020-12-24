@@ -1,6 +1,6 @@
 # <i>Avatar: The Last Airbender</i> AO3 Stats
 
-On May 15th, 2020, Netflix added <i>Avatar: The Last Airbender</i> back to the platform. With much of the world still under lockdown, the popular Nickelodeon show saw a surge in popularity, welcoming both old and new fans, as demonstrated by the explosion of fanfiction published on the site [Archive of Our Own](https://archiveofourown.org/) (AO3). 
+On May 15th, 2020, Netflix added <i>Avatar: The Last Airbender</i> back to the platform. With much of the world still under lockdown, the beloved Nickelodeon show saw a surge in popularity, welcoming both old and new fans, as demonstrated by the explosion of fanfiction published on the site [Archive of Our Own](https://archiveofourown.org/) (AO3). 
 ![ATLA fic over time](atla_fics_over_time.png)
 
 Through the resurgence, the percentage of fic tagged with a romantic or sexual relationship between characters in the show has remained high, just over 70%. 
@@ -17,7 +17,7 @@ Interactive version can be found [here](https://pharsaliam.github.io/ao3-vizzes/
 I'll admit I was a little surprised by the results. From what I knew (and the cartoon above), I would have thought the chart would be dominated by a little triangle between Zuko, Katara, and Aang. But, it seems like Zuko himself is taking up the most real estate.  
 ![atla_chord_zuko_hover](atla_2020_chord_zuko.png)
 
-What surprised me the most was the popularity of Zuko/Sokka, a ship I had never heard of before. Given the recent explosion of fic writing, I was curious if this was a new phenomenon, so I plotted the occurrence of Zuko/Sokka over time, compared to the just slightly more popular Zuko/Katara (Side note: this sibling rivalry has the vibe of an unfortunate /r/relationships post). 
+What surprised me the most was the popularity of Zuko/Sokka, a ship I had never heard of before. Given the recent explosion of fic writing, I was curious to see if this was a new phenomenon, so I plotted the occurrence of Zuko/Sokka over time, compared to the just slightly more popular Zuko/Katara (Side note: this sibling rivalry has the vibe of an unfortunate /r/relationships post). 
 ![Zuko_playing_this_family](Zuko_Fam.png)
 
 While Zuko/Sokka has provided a decent showing over the years, it turns out that 2020 is the first year in which it overtook the juggernaut Zutara. 
@@ -34,5 +34,8 @@ I used Shahini Rostami's [chord generator](https://github.com/shahinrostami/chor
 **Why only include the top two ships tagged on each fic?**  
 I only wanted to include main ships in a fic, not side ships, assuming that ships are tagged in order of importance. Over 70% of fics had two or fewer ships tagged. 
 
+**What about ships with more than two characters?**  
+Each two-person combination is counted separately. For example, in a ship between characters X/Y/Z, the pairings X/Y, X/Z, and Y/Z will each be counted once. 
+
 ---
-Last Updated: December 23rd, 2020 
+Last Updated: December 24th, 2020 
