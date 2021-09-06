@@ -1,7 +1,21 @@
-from functools import partial
+import logging
 
 import numpy as np
-import pandas as pd
+
+
+CSV_WITH_TAG_DICT_NAME = 'works_df_with_parsed_tags_test.csv'
+LOGGING_LEVEL = logging.INFO
+FANDOM = 'Marvel Cinematic Universe'
+
+logger = logging.getLogger('LOG')
+logger.setLevel(LOGGING_LEVEL)
+ch = logging.StreamHandler()
+ch.setLevel(LOGGING_LEVEL)
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p'
+)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 
 def create_tag_dict(tag_list, tag_lookup_table):
