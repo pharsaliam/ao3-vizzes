@@ -6,6 +6,8 @@ import numpy as np
 CSV_WITH_TAG_DICT_NAME = 'works_df_with_parsed_tags_test.csv'
 LOGGING_LEVEL = logging.INFO
 FANDOM = 'Marvel Cinematic Universe'
+WORKS_CSV = 'ao3_official_dump_210321/works-20210226.csv'
+TAGS_CSV = 'ao3_official_dump_210321/tags-20210226.csv'
 
 logger = logging.getLogger('LOG')
 logger.setLevel(LOGGING_LEVEL)

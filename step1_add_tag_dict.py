@@ -3,15 +3,16 @@ from functools import partial
 # import numpy as np
 import pandas as pd
 
-from utils import create_tag_dict, parse_tags_by_type, CSV_WITH_TAG_DICT_NAME, logger
+from utils import create_tag_dict, parse_tags_by_type, logger,\
+    CSV_WITH_TAG_DICT_NAME, WORKS_CSV, TAGS_CSV
 
 if __name__ == '__main__':
     # Retrieve data
     logger.info('Retrieving works_df')
-    works_df = pd.read_csv('ao3_official_dump_210321/works-20210226.csv')
+    works_df = pd.read_csv(WORKS_CSV)
     works_df = works_df.drop(['Unnamed: 6'], axis=1)
     logger.info('Retrieving tags_df')
-    tags_df = pd.read_csv('ao3_official_dump_210321/tags-20210226.csv', index_col='id')
+    tags_df = pd.read_csv(TAGS_CSV, index_col='id')
     # TEMP -- TEST ON LIMITED DATA
     # Notes: 1M rows processed in ~18 minutes...
     works_df = works_df.head(100).copy()
