@@ -1,9 +1,5 @@
 import logging
 
-import numpy as np
-
-
-CSV_WITH_TAG_DICT_NAME = 'works_df_with_parsed_tags_test.csv'
 LOGGING_LEVEL = logging.INFO
 FANDOM = 'Marvel Cinematic Universe'
 WORKS_CSV = 'ao3_official_dump_210321/works-20210226.csv'
@@ -20,51 +16,61 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-def create_tag_dict(tag_list, tag_lookup_table):
+def preprocess(works_df, tags_df):
     """
-    Creates a list of dictionaries denoting the ID and type of tag for all tags that can be found in a tag lookup
-    :param tag_list: A list of tag IDs
-    :param tag_lookup_table: A DataFrame containing information for tags
-    :return: A list of dictionaries where the key, value pairs notes the tag ID and type
+    Explodes works_df to one row per tag per work, retrieves the names
+    and types of the tags, and standardizes non-canonical tags
+    :param works_df: A DataFrame with work info, one row per work
+    :param tags_df: A DataFrame with tag info, one row per tag
+    :return: A DataFrame with one row per tag per work
     """
-    tag_dict_list = []
-    # Check to make sure that the tag list isn't empty
-    if not isinstance(tag_list, float):
-        for tag_id in tag_list:
-            tag_dict = None
-            tag_id = int(tag_id)
-            if tag_id in tag_lookup_table.index:
-                tag_dict = {'id': tag_id, 'type': tag_lookup_table.loc[tag_id, 'type']}
-                tag_dict_list.append(tag_dict)
+    # Standardize non-canonical tags
+    logger.info('Standardizing non-canonical tags')
+    cols_to_coalesce = ['type', 'name', 'canonical']
+    tags_df_merger = standardize_tags(tags_df, cols_to_coalesce)
+    # Retrieve work tags
+    logger.debug('Splitting tags into a list')
+    works_df['tags_list'] = works_df['tags'].str.strip().str.split('+')
+    logger.info('Exploding works')
+    works_tags_df = works_df.drop(
+        labels=['tags', 'Unnamed: 6', 'restricted'], axis=1
+    ).explode(
+        'tags_list'
+    ).reset_index(
+    ).rename(
+        columns={'tags_list': 'tag_id', 'index': 'work_id'}
+    )
+    works_tags_df['tag_id'] = works_tags_df['tag_id'].fillna(-999).astype(int)
+    works_tags_df = works_tags_df.merge(
+        tags_df_merger, how='left', left_on='tag_id', right_index=True
+    )
+    return works_tags_df
 
-    return tag_dict_list
 
-
-def parse_tags_by_type(tag_dict_list, tag_type, tag_lookup_table):
+def standardize_tags(tags_df, cols_to_coalesce):
     """
-    Parses tag IDs by type and retrieves a list of tag names
-    :param tag_dict_list: A list of dictionaries where the key, value pairs notes the tag ID and type
-    :param tag_type: The type of tag
-    :param tag_lookup_table: A DataFrame containing information for tags
-    :return: A list of tag names
+    Standardizes tags by retrieving canonical tag information for non-canonical tags
+        that have a canonical equivalent
+    :param tags_df: A DataFrame with tag info, one row per tag
+    :param cols_to_coalesce: A list of columns in tags_df for which to retrieve
+        canonical information if it exists
+    :return: A DataFrame with standardized fields listed in cols_to_coalesce
     """
-    tag_name_list = []
-    for td in tag_dict_list:
-        try:
-            tag_name = ''
-            if td['type'] == tag_type:
-                canon_tag_id = tag_lookup_table.loc[td['id'], 'merger_id']
-                # if there is a canonical version of the tag, retrieve that instead
-                if not np.isnan(canon_tag_id):
-                    tag_name = tag_lookup_table.loc[canon_tag_id, 'name']
-                else:
-                    tag_name = tag_lookup_table.loc[td['id'], 'name']
-            if tag_name:
-                tag_name_list.append(tag_name)
-        except KeyError:
-            # Not sure how, but a few stories have tags that aren't included in the tag_df
-            print(td)
-            pass
-    return tag_name_list
+    tags_df_std = tags_df.merge(
+        tags_df,
+        how='left',
+        left_on='merger_id',
+        right_index=True,
+        suffixes=['_orig', '_merg'],
+        validate='many_to_one'
+    )
+    cols_final = []
+    for col in cols_to_coalesce:
+        tags_df_std[f'{col}_final'] = tags_df_std[
+            f'{col}_merg'
+        ].combine_first(tags_df_std[f'{col}_orig'])
+        cols_final.append(f'{col}_final')
 
+    tags_df_std = tags_df_std[cols_final].copy()
 
+    return tags_df_std
