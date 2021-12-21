@@ -1,9 +1,20 @@
 import logging
 
 LOGGING_LEVEL = logging.INFO
-FANDOM = 'Marvel Cinematic Universe'
 WORKS_CSV = 'ao3_official_dump_210321/works-20210226.csv'
 TAGS_CSV = 'ao3_official_dump_210321/tags-20210226.csv'
+WORKS_TAGS_CSV = 'preprocessed_works_tags.csv'
+WORKS_TAGS_CSV_DTYPES = {
+    'work_id': 'int',
+    'creation date': 'string',
+    'language': 'str',
+    'complete': 'boolean',
+    'word_count': 'float',
+    'tag_id': 'int',
+    'type_final': 'str',
+    'name_final': 'str',
+    'canonical_final': 'boolean'
+}
 
 logger = logging.getLogger('LOG')
 logger.setLevel(LOGGING_LEVEL)
