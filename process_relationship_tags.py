@@ -4,9 +4,10 @@ from utils import (
     preprocess, logger,
     WORKS_CSV, TAGS_CSV, WORKS_TAGS_CSV, WORKS_TAGS_CSV_DTYPES
 )
+from fandom import Fandom
 
 # These variables should be passed through in the CLI
-FANDOM = 'Marvel Cinematic Universe'
+FANDOM = '陈情令 | The Untamed (TV)'
 FLAG_PREPROCESS = False
 
 if __name__ == '__main__':
@@ -24,19 +25,13 @@ if __name__ == '__main__':
     else:
         logger.info('Loading previously preprocessed data')
         # Test replacing this with the other IO library
-        # Currently takes 5 minutes
+        # Currently takes 3 minutes
         works_tags_df = pd.read_csv(WORKS_TAGS_CSV, dtype=WORKS_TAGS_CSV_DTYPES)
         works_tags_df['creation date'] = pd.to_datetime(
             works_tags_df['creation date'], format='%Y-%m-%d'
         )
-    # Filter for fandom
-    logger.debug(f'Filtering for fandom: {FANDOM}')
-    works_in_fandom = works_tags_df.query(
-        f'type_final == "Fandom" and name_final == \"{FANDOM}\"'
-    )[['work_id']].drop_duplicates()
-    relationship_tags_in_fandom = works_tags_df.query(
-        'type_final == "Relationship"'
-    ).merge(
-        works_in_fandom, how='inner', on='work_id'
-    )
-    logger.info(f'Done-- There are {len(relationship_tags_in_fandom)} relationship tags')
+    # Test new class
+    logger.info(f'Initializing fandom class for {FANDOM}')
+    fandom = Fandom(FANDOM, works_tags_df)
+    fandom.generate_relationship_chord_chart()
+    logger.info(f'Done. Chord chart saved')
