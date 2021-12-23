@@ -15,6 +15,7 @@ WORKS_TAGS_CSV_DTYPES = {
     'name_final': 'str',
     'canonical_final': 'boolean'
 }
+TOP_50_FANDOMS_CSV = 'top_50_fandoms.csv'
 
 logger = logging.getLogger('LOG')
 logger.setLevel(LOGGING_LEVEL)
