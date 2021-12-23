@@ -1,4 +1,8 @@
 import logging
+import csv
+
+import pandas as pd
+import streamlit as st
 
 LOGGING_LEVEL = logging.INFO
 WORKS_CSV = 'ao3_official_dump_210321/works-20210226.csv'
@@ -26,6 +30,58 @@ formatter = logging.Formatter(
 )
 ch.setFormatter(formatter)
 logger.addHandler(ch)
+
+
+@st.cache
+def load_data(
+        works_csv_location=WORKS_CSV, tags_csv_location=TAGS_CSV,
+        works_tags_csv_location=WORKS_TAGS_CSV, top_n_fandom_csv_location=TOP_50_FANDOMS_CSV,
+        flag_preprocess=False
+):
+    """
+    If flag_preprocess=True, loads raw works and tags dat and preprocesses
+    If flag_preprocess=False, loads previously saved preprocessed data
+    :param works_csv_location: Path to the CSV containing raw works data
+    :param tags_csv_location: Path to the CSV containing raw tags data
+    :param works_tags_csv_location: Path to the CSV containing preprocessed works tags data
+    :param top_n_fandom_csv_location: Path to the CSV containing preprocess top 50 fandoms list
+    :param flag_preprocess: If true, loads raw data and preprocesses it.
+                            If false, loads preprocessed data
+    :return: DataFrame containing one row per tag per work
+            List containing top 50 fandoms by works tagged
+    """
+    if flag_preprocess:
+        # Retrieve data
+        logger.info('Preprocessing data')
+        logger.info('Retrieving works_df')
+        works_df = pd.read_csv(works_csv_location)
+        logger.info('Retrieving tags_df')
+        tags_df = pd.read_csv(tags_csv_location, index_col='id')
+        # Notes: Takes 19 minutes to process entire dataset
+        works_tags_df = preprocess(works_df, tags_df)
+        logger.info(f'Saving preprocessed works tags data to {works_tags_csv_location}')
+        works_tags_df.to_csv(works_tags_csv_location, index=False)
+        top_50_fandoms = list(tags_df.query(
+            'type == "Fandom"'
+        ).sort_values(
+            by='cached_count', ascending=False
+        ).head(50)['name'])
+        top_50_fandoms = [[s] for s in top_50_fandoms]
+        logger.info(f'Saving list of top 50 fandoms to {top_n_fandom_csv_location}')
+        with open(top_n_fandom_csv_location, 'w') as f:
+            write = csv.writer(f)
+            write.writerows(top_50_fandoms)
+    else:
+        logger.info('Loading previously preprocessed data')
+        # Test replacing this with the other IO library
+        # Currently takes 3 minutes
+        top_50_fandoms = [s.strip() for s in open(top_n_fandom_csv_location).readlines()]
+        works_tags_df = pd.read_csv(works_tags_csv_location, dtype=WORKS_TAGS_CSV_DTYPES)
+        works_tags_df['creation date'] = pd.to_datetime(
+            works_tags_df['creation date'], format='%Y-%m-%d'
+        )
+        logger.info('Finished loading data')
+    return works_tags_df, top_50_fandoms
 
 
 def preprocess(works_df, tags_df):
