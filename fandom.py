@@ -14,7 +14,7 @@ PLT_RC_PARAMS = {
     'ytick.labelsize': 15,
 }
 plt.style.use('ggplot')
-for k,v in PLT_RC_PARAMS.items():
+for k, v in PLT_RC_PARAMS.items():
     plt.rcParams[k] = v
 
 RELATIONSHIP_SEPARATOR_LU = {
@@ -42,6 +42,13 @@ class Fandom:
         # self.freeform_tags = self.retrieve_tags_by_type(works_tags_df, 'Freeform')
 
     def retrieve_tags_by_type(self, works_tags_df, tag_type):
+        """
+        Retrieve works_tags_df by tag type
+        :param works_tags_df: One row per tag per work
+        :param tag_type: Type of tag (e.g., 'Media', 'Rating', 'ArchiveWarning', 'Category', 'Character',
+        'Fandom', 'Relationship', 'Freeform', 'UnsortedTag')
+        :return: Subset of works_tags_df that only contains the specified tag type
+        """
         df = works_tags_df.query(
             f'type_final == "{tag_type}"'
         ).merge(
@@ -58,6 +65,15 @@ class Fandom:
     def generate_relationship_chord_chart(
             self, relationship_type='romantic', top_n=50, ax=None, save_fig=False
     ):
+        """
+        Generates chord chart for relationships
+        :param relationship_type: 'romantic' or 'platonic'
+        :param top_n: Top N relationships by number of fics to display
+        :param ax: Matplotlib axis where the plot should be drawn.
+        :param save_fig: Boolean indicating whether or not to save the chord chart as image
+        :return: None
+        """
+        assert relationship_type in ('romantic', 'platonic')
         rel_df = self.parse_relationships_to_characters(relationship_type)
         rel_count = rel_df.groupby(CHARACTER_COLUMN_NAMES).agg({'work_id': 'count'}).reset_index()
         rel_count = rel_count.sort_values(by='work_id', ascending=False).head(top_n)
@@ -86,7 +102,12 @@ class Fandom:
         return None
 
     def parse_relationships_to_characters(self, relationship_type):
-        assert relationship_type in ('romantic', 'platonic')
+        """
+        Parses the characters in relationships
+        Note that currently poly relationships are split to pairs (e.g., A/B/C -> A/B, A/C, B/C)
+        :param relationship_type: 'romantic' or 'platonic'
+        :return: relationship dataframe with two new columns indicating the characters in that ship
+        """
         # Filtering by relationship type
         relationship_split = RELATIONSHIP_SEPARATOR_LU[relationship_type]
         rel_df = self.relationships.query(f'relationship_type == "{relationship_type}"').copy()
@@ -109,6 +130,17 @@ class Fandom:
             self, low_wc_upper_boundary=5000, low_wc_step=1000,
             high_wc_upper_boundary=100000, high_wc_step=5000
     ):
+        """
+        Provides visualizations, statistics on binned word count distribution
+        :param low_wc_upper_boundary: Upper boundary for fic to be considered "low" word count
+        :param low_wc_step: Bin steps for low word count bins
+        :param high_wc_upper_boundary: Upper boundary for bins (e.g., words counts greater than this
+            will all be lumped together into the last bin)
+        :param high_wc_step: Bin steps for high word count bins
+        :return: Matplotlib axis containing the binned word count distribution plot
+            Mean word count
+            Median word count
+        """
         wc_bins, wc_bin_labels = self.generate_word_count_bins(
             low_wc_upper_boundary, low_wc_step, high_wc_upper_boundary, high_wc_step
         )
@@ -130,6 +162,15 @@ class Fandom:
             low_wc_upper_boundary=5000, low_wc_step=1000,
             high_wc_upper_boundary=100000, high_wc_step=5000
     ):
+        """
+        Generates word count bins and bin labels
+        :param low_wc_upper_boundary: Upper boundary for fic to be considered "low" word count
+        :param low_wc_step: Bin steps for low word count bins
+        :param high_wc_upper_boundary: Upper boundary for bins (e.g., words counts greater than this
+            will all be lumped together into the last bin)
+        :param high_wc_step: Bin steps for high word count bins
+        :return: Word count bins and bin labels
+        """
         low_wc_bins = list(np.arange(0, low_wc_upper_boundary, low_wc_step))
         high_wc_bins = list(np.arange(low_wc_upper_boundary, high_wc_upper_boundary, high_wc_step))
         wc_bins = low_wc_bins + high_wc_bins

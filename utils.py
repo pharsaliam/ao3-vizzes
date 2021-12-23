@@ -146,5 +146,8 @@ def standardize_tags(tags_df, cols_to_coalesce):
     return tags_df_std
 
 
-def format_thousand(number):
-    return f'{int(number / 1000)}K'
+def format_thousand(number, precision=0):
+    if precision == 0:
+        return f'{int(number / 1000)}K'
+    else:
+        return f'{round(number / 1000, precision)}K'
