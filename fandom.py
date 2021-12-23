@@ -55,7 +55,9 @@ class Fandom:
         )
         return df
 
-    def generate_relationship_chord_chart(self, relationship_type='romantic', top_n=50):
+    def generate_relationship_chord_chart(
+            self, relationship_type='romantic', top_n=50, ax=None, save_fig=False
+    ):
         rel_df = self.parse_relationships_to_characters(relationship_type)
         rel_count = rel_df.groupby(CHARACTER_COLUMN_NAMES).agg({'work_id': 'count'}).reset_index()
         rel_count = rel_count.sort_values(by='work_id', ascending=False).head(top_n)
@@ -76,10 +78,11 @@ class Fandom:
             names=matrix.columns,
             rotate_names=[True for c in matrix.columns],
             use_gradient=True,
-            cmap='tab20'
+            cmap='tab20',
+            ax=ax
         )
-        plt.ioff()
-        plt.savefig(f'{self.name.replace(" ", "_")}_chord_chart.png')
+        if save_fig:
+            plt.savefig(f'{self.name.replace(" ", "_")}_chord_chart.png')
         return None
 
     def parse_relationships_to_characters(self, relationship_type):
