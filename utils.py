@@ -36,7 +36,7 @@ logger.addHandler(ch)
 def load_data(
         works_csv_location=WORKS_CSV, tags_csv_location=TAGS_CSV,
         works_tags_csv_location=WORKS_TAGS_CSV, top_n_fandom_csv_location=TOP_50_FANDOMS_CSV,
-        flag_preprocess=False
+        flag_preprocess=False, works_tags_nrows=None
 ):
     """
     If flag_preprocess=True, loads raw works and tags dat and preprocesses
@@ -45,8 +45,10 @@ def load_data(
     :param tags_csv_location: Path to the CSV containing raw tags data
     :param works_tags_csv_location: Path to the CSV containing preprocessed works tags data
     :param top_n_fandom_csv_location: Path to the CSV containing preprocess top 50 fandoms list
-    :param flag_preprocess: If true, loads raw data and preprocesses it.
-                            If false, loads preprocessed data
+    :param flag_preprocess: If True, loads raw data and preprocesses it.
+                            If False, loads preprocessed data
+    :param works_tags_nrows: Number of rows to read from the works_tags_df when flag_preprocess=False
+                            Ignored if flag_preprocess=True
     :return: DataFrame containing one row per tag per work
             List containing top 50 fandoms by works tagged
     """
@@ -76,7 +78,7 @@ def load_data(
         # Test replacing this with the other IO library
         # Currently takes 3 minutes
         top_50_fandoms = [s.strip() for s in open(top_n_fandom_csv_location).readlines()]
-        works_tags_df = pd.read_csv(works_tags_csv_location, dtype=WORKS_TAGS_CSV_DTYPES)
+        works_tags_df = pd.read_csv(works_tags_csv_location, dtype=WORKS_TAGS_CSV_DTYPES, nrows=works_tags_nrows)
         works_tags_df['creation date'] = pd.to_datetime(
             works_tags_df['creation date'], format='%Y-%m-%d'
         )
@@ -142,3 +144,7 @@ def standardize_tags(tags_df, cols_to_coalesce):
     tags_df_std = tags_df_std[cols_final].copy()
 
     return tags_df_std
+
+
+def format_thousand(number):
+    return f'{int(number / 1000)}K'
