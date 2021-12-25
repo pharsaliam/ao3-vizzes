@@ -32,15 +32,17 @@ ch.setFormatter(formatter)
 logger.addHandler(ch)
 
 
-@st.cache
+@st.cache(hash_funcs={pd._libs.parsers.TextReader: id})
 def load_data(
         works_csv_location=WORKS_CSV, tags_csv_location=TAGS_CSV,
         works_tags_csv_location=WORKS_TAGS_CSV, top_n_fandom_csv_location=TOP_50_FANDOMS_CSV,
-        flag_preprocess=False, works_tags_nrows=None
+        flag_preprocess=False, works_tags_nrows=None, chunksize=None
 ):
     """
     If flag_preprocess=True, loads raw works and tags dat and preprocesses
     If flag_preprocess=False, loads previously saved preprocessed data
+    :param chunksize:
+    :type chunksize:
     :param works_csv_location: Path to the CSV containing raw works data
     :param tags_csv_location: Path to the CSV containing raw tags data
     :param works_tags_csv_location: Path to the CSV containing preprocessed works tags data
@@ -78,10 +80,22 @@ def load_data(
         # Test replacing this with the other IO library
         # Currently takes 3 minutes
         top_50_fandoms = [s.strip() for s in open(top_n_fandom_csv_location).readlines()]
-        works_tags_df = pd.read_csv(works_tags_csv_location, dtype=WORKS_TAGS_CSV_DTYPES, nrows=works_tags_nrows)
-        works_tags_df['creation date'] = pd.to_datetime(
-            works_tags_df['creation date'], format='%Y-%m-%d'
-        )
+        if chunksize:
+            works_tags_df = pd.concat((chunk for chunk in pd.read_csv(
+                works_tags_csv_location,
+                dtype=WORKS_TAGS_CSV_DTYPES,
+                nrows=works_tags_nrows,
+                chunksize=chunksize
+            )))
+        else:
+            works_tags_df = pd.read_csv(
+                works_tags_csv_location,
+                dtype=WORKS_TAGS_CSV_DTYPES,
+                nrows=works_tags_nrows
+            )
+        # works_tags_df['creation date'] = pd.to_datetime(
+        #     works_tags_df['creation date'], format='%Y-%m-%d'
+        # )
         logger.info('Finished loading data')
     return works_tags_df, top_50_fandoms
 
