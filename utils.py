@@ -1,5 +1,4 @@
 import logging
-import csv
 
 import pandas as pd
 import streamlit as st
@@ -7,20 +6,20 @@ import streamlit as st
 LOGGING_LEVEL = logging.INFO
 WORKS_CSV = 'ao3_official_dump_210321/works-20210226.csv'
 TAGS_CSV = 'ao3_official_dump_210321/tags-20210226.csv'
-WORKS_TAGS_CSV = 'preprocessed_works_tags.csv'
-WORKS_TAGS_CSV_DTYPES = {
-    'work_id': 'int',
-    'creation date': 'string',
-    'language': 'str',
-    'complete': 'boolean',
-    'word_count': 'float',
-    'tag_id': 'int',
-    'type_final': 'str',
-    'name_final': 'str',
-    'canonical_final': 'boolean'
+WORKS_TAGS_PARQUET = 'preprocessed_works_tags.parquet.gzip'
+TAGS_AGGREGATED_PARQUET = 'non_fandoms_tags_aggregated.parquet.gzip'
+WORKS_WITH_FANDOM_PARQUET = 'works_with_fandom.parquet.gzip'
+FANDOM_WORKS_COUNT_PARQUET = 'fandom_works_count.parquet.gzip'
+TAG_TYPES_TO_KEEP = ['Relationship', 'Freeform', 'ArchiveWarnings', 'Rating', 'Fandom']
+MINIMUM_WORK_COUNT = 100
+TAG_GROUPBY_LIST = ['fandom_name', 'name_final', 'type_final']
+TAG_GROUPBY_AGG = {
+    'work_id': 'count',
+    'word_count': 'mean'
 }
-TOP_50_FANDOMS_CSV = 'top_50_fandoms.csv'
+TO_PARQUET_CONFIG = {'index': 'False', 'compression': 'gzip'}
 
+# TODO Figure out why duplicate logs
 logger = logging.getLogger('LOG')
 logger.setLevel(LOGGING_LEVEL)
 ch = logging.StreamHandler()
@@ -33,74 +32,61 @@ logger.addHandler(ch)
 
 
 @st.cache(hash_funcs={pd._libs.parsers.TextReader: id})
-def load_data(
-        works_csv_location=WORKS_CSV, tags_csv_location=TAGS_CSV,
-        works_tags_csv_location=WORKS_TAGS_CSV, top_n_fandom_csv_location=TOP_50_FANDOMS_CSV,
-        flag_preprocess=False, works_tags_nrows=None, chunksize=None
+def retrieve_preprocessed_data(
+        tags_aggregated_location=TAGS_AGGREGATED_PARQUET,
+        works_with_fandom_location=WORKS_WITH_FANDOM_PARQUET,
+        fandom_count_location=FANDOM_WORKS_COUNT_PARQUET,
 ):
     """
-    If flag_preprocess=True, loads raw works and tags dat and preprocesses
-    If flag_preprocess=False, loads previously saved preprocessed data
-    :param chunksize:
-    :type chunksize:
-    :param works_csv_location: Path to the CSV containing raw works data
-    :param tags_csv_location: Path to the CSV containing raw tags data
-    :param works_tags_csv_location: Path to the CSV containing preprocessed works tags data
-    :param top_n_fandom_csv_location: Path to the CSV containing preprocess top 50 fandoms list
-    :param flag_preprocess: If True, loads raw data and preprocesses it.
-                            If False, loads preprocessed data
-    :param works_tags_nrows: Number of rows to read from the works_tags_df when flag_preprocess=False
-                            Ignored if flag_preprocess=True
-    :return: DataFrame containing one row per tag per work
-            List containing top 50 fandoms by works tagged
+    Loads previously saved preprocessed and aggregated data
+    :param tags_aggregated_location:
+    :type tags_aggregated_location:
+    :param works_with_fandom_location:
+    :type works_with_fandom_location:
+    :param fandom_count_location:
+    :type fandom_count_location:
+    :return:
+    :rtype:
     """
-    if flag_preprocess:
-        # Retrieve data
-        logger.info('Preprocessing data')
-        logger.info('Retrieving works_df')
-        works_df = pd.read_csv(works_csv_location)
-        logger.info('Retrieving tags_df')
-        tags_df = pd.read_csv(tags_csv_location, index_col='id')
-        # Notes: Takes 19 minutes to process entire dataset
-        works_tags_df = preprocess(works_df, tags_df)
-        logger.info(f'Saving preprocessed works tags data to {works_tags_csv_location}')
-        works_tags_df.to_csv(works_tags_csv_location, index=False)
-        top_50_fandoms = list(tags_df.query(
-            'type == "Fandom"'
-        ).sort_values(
-            by='cached_count', ascending=False
-        ).head(50)['name'])
-        top_50_fandoms = [[s] for s in top_50_fandoms]
-        logger.info(f'Saving list of top 50 fandoms to {top_n_fandom_csv_location}')
-        with open(top_n_fandom_csv_location, 'w') as f:
-            write = csv.writer(f)
-            write.writerows(top_50_fandoms)
-    else:
-        logger.info('Loading previously preprocessed data')
-        # Test replacing this with the other IO library
-        # Currently takes 3 minutes
-        top_50_fandoms = [s.strip() for s in open(top_n_fandom_csv_location).readlines()]
-        if chunksize:
-            works_tags_df = pd.concat((chunk for chunk in pd.read_csv(
-                works_tags_csv_location,
-                dtype=WORKS_TAGS_CSV_DTYPES,
-                nrows=works_tags_nrows,
-                chunksize=chunksize
-            )))
-        else:
-            works_tags_df = pd.read_csv(
-                works_tags_csv_location,
-                dtype=WORKS_TAGS_CSV_DTYPES,
-                nrows=works_tags_nrows
-            )
-        # works_tags_df['creation date'] = pd.to_datetime(
-        #     works_tags_df['creation date'], format='%Y-%m-%d'
-        # )
-        logger.info('Finished loading data')
-    return works_tags_df, top_50_fandoms
+    logger.info('Loading previously preprocessed data')
+    non_fandom_tags_agg = pd.read_parquet(tags_aggregated_location)
+    works_with_fandom = pd.read_parquet(works_with_fandom_location)
+    fandom_works_count = pd.read_parquet(fandom_count_location)
+    logger.info('Finished loading data')
+    return non_fandom_tags_agg, works_with_fandom, fandom_works_count
 
 
-def preprocess(works_df, tags_df):
+def preprocess_data(
+        works_csv_location=WORKS_CSV, tags_csv_location=TAGS_CSV, works_tags_location=WORKS_TAGS_PARQUET,
+        tags_aggregated_location=TAGS_AGGREGATED_PARQUET, works_with_fandom_location=WORKS_WITH_FANDOM_PARQUET,
+        fandom_count_location=FANDOM_WORKS_COUNT_PARQUET, minimum_work_count=MINIMUM_WORK_COUNT, flag_save_data=True
+):
+    # Retrieve data
+    logger.info('Preprocessing data')
+    logger.info('Retrieving works_df')
+    works_df = pd.read_csv(works_csv_location)
+    logger.info('Retrieving tags_df')
+    tags_df = pd.read_csv(tags_csv_location, index_col='id')
+    # Notes: Takes 19 minutes to process entire dataset
+    logger.info('Generating works_tags_df')
+    works_tags_df = generate_works_tags_df(works_df, tags_df)
+    logger.info('Aggregating works_tags_df')
+    non_fandom_tags_agg, works_with_fandom, fandom_works_count = aggregate_works_tags_df(
+        works_tags_df, minimum_work_count
+    )
+    if flag_save_data:
+        logger.info(f'Saving preprocessed works tags data to {works_tags_location}')
+        works_tags_df.to_parquet(works_tags_location, **TO_PARQUET_CONFIG)
+        logger.info(f'Saving aggregated non fandom tags data to {tags_aggregated_location}')
+        non_fandom_tags_agg.to_parquet(tags_aggregated_location, **TO_PARQUET_CONFIG)
+        logger.info(f'Saving works with fandoms data to {works_with_fandom_location}')
+        works_with_fandom.to_parquet(works_with_fandom_location, **TO_PARQUET_CONFIG)
+        logger.info(f'Saving fandom work counts data to {fandom_count_location}')
+        fandom_works_count.to_parquet(fandom_count_location, **TO_PARQUET_CONFIG)
+    return None
+
+
+def generate_works_tags_df(works_df, tags_df):
     """
     Explodes works_df to one row per tag per work, retrieves the names
     and types of the tags, and standardizes non-canonical tags
@@ -117,7 +103,7 @@ def preprocess(works_df, tags_df):
     works_df['tags_list'] = works_df['tags'].str.strip().str.split('+')
     logger.info('Exploding works')
     works_tags_df = works_df.drop(
-        labels=['tags', 'Unnamed: 6', 'restricted'], axis=1
+        labels=['tags', 'Unnamed: 6', 'restricted', 'complete', 'language'], axis=1
     ).explode(
         'tags_list'
     ).reset_index(
@@ -128,7 +114,38 @@ def preprocess(works_df, tags_df):
     works_tags_df = works_tags_df.merge(
         tags_df_merger, how='left', left_on='tag_id', right_index=True
     )
+    works_tags_df = works_tags_df.loc[works_tags_df['type_final'].isin(TAG_TYPES_TO_KEEP)]
+    works_tags_df = works_tags_df.query('name_final != "Redacted"').copy()
     return works_tags_df
+
+
+def aggregate_works_tags_df(works_tags_df, minimum_work_count):
+    works_with_fandom = works_tags_df.query(
+        'type_final == "Fandom"'
+    )[['work_id', 'name_final', 'word_count', 'creation date']]
+    works_with_fandom = works_with_fandom.rename(columns={'name_final': 'fandom_name'})
+    logger.info(f"Works before filtering rare fandoms: {len(works_with_fandom['work_id'].unique())}")
+    fandom_works_count = works_with_fandom.groupby(by='fandom_name').count().reset_index()
+    rare_fandoms = fandom_works_count.query(f'work_id < {minimum_work_count}')['fandom_name']
+    works_with_fandom = works_with_fandom.loc[~works_with_fandom['fandom_name'].isin(rare_fandoms)]
+    logger.info(f"Works after filtering rare fandoms: {len(works_with_fandom['work_id'].unique())}")
+    works_tags_df_no_fandom = works_tags_df.query('type_final != "Fandom"')
+    works_tags_df_no_fandom = works_tags_df_no_fandom.merge(
+        works_with_fandom[['work_id', 'fandom_name']],
+        how='inner',
+        on='work_id'
+    )
+    non_fandom_tags_agg = works_tags_df_no_fandom.groupby(
+        by=TAG_GROUPBY_LIST
+    ).agg(TAG_GROUPBY_AGG).reset_index()
+    non_fandom_tags_agg.rename(
+        columns={
+            'work_id': 'works_num',
+            'word_count': 'word_count_mean'
+        },
+        inplace=True
+    )
+    return non_fandom_tags_agg, works_with_fandom, fandom_works_count
 
 
 def standardize_tags(tags_df, cols_to_coalesce):
