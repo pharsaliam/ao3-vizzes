@@ -5,7 +5,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_chord_diagram import chord_diagram
 
-from utils import format_thousand
+from utils import format_thousand, TAG_TYPES_TO_KEEP
 
 PLT_RC_PARAMS = {
     'figure.figsize': (20, 10),
@@ -25,40 +25,35 @@ CHARACTER_COLUMN_NAMES = ['char_1', 'char_2']
 
 
 class Fandom:
-    def __init__(self, name, works_tags_df):
+    def __init__(self, name, works_with_fandom, non_fandom_tags_agg):
         self.name = name
-        self.works = works_tags_df.query(
-            f'type_final == "Fandom" and name_final == \"{name}\"'
-        )[['work_id', 'creation date', 'language', 'complete', 'word_count']].drop_duplicates()
-        self.relationships = self.retrieve_tags_by_type(works_tags_df, 'Relationship')
+        self.works = works_with_fandom.loc[works_with_fandom['fandom_name'] == self.name]
+        self.relationships = self.retrieve_tags_by_type(non_fandom_tags_agg, 'Relationship')
         relationship_conditions = [
             self.relationships['relationship_name'].str.contains(split)
             for split in RELATIONSHIP_SEPARATOR_LU.values()
         ]
-        self.relationships ['relationship_type'] = np.select(
+        self.relationships['relationship_type'] = np.select(
             relationship_conditions,
             [rel_type for rel_type in RELATIONSHIP_SEPARATOR_LU]
         )
-        # self.freeform_tags = self.retrieve_tags_by_type(works_tags_df, 'Freeform')
+        self.freeform_tags = self.retrieve_tags_by_type(non_fandom_tags_agg, 'Freeform')
 
-    def retrieve_tags_by_type(self, works_tags_df, tag_type):
+    def retrieve_tags_by_type(self, non_fandom_tags_agg, tag_type):
         """
         Retrieve works_tags_df by tag type
-        :param works_tags_df: One row per tag per work
-        :param tag_type: Type of tag (e.g., 'Media', 'Rating', 'ArchiveWarning', 'Category', 'Character',
-        'Fandom', 'Relationship', 'Freeform', 'UnsortedTag')
+        :param non_fandom_tags_agg: DataFrame containing aggregated non-fandom tag data
+        :param tag_type: Type of non-Fandom tag (see TAG_TYPES_TO_KEEP in utils for full list)
         :return: Subset of works_tags_df that only contains the specified tag type
         """
-        df = works_tags_df.query(
-            f'type_final == "{tag_type}"'
-        ).merge(
-            self.works['work_id'], how='inner', on='work_id'
-        ).rename(columns={
-            'name_final': f'{tag_type.lower()}_name',
-            'canonical_final': 'is_tag_canonical'
-            }
+        assert tag_type in [s for s in TAG_TYPES_TO_KEEP if s != 'Fandom']
+        df = non_fandom_tags_agg.loc[
+            (non_fandom_tags_agg['type_final'] == tag_type)
+            & (non_fandom_tags_agg['fandom_name'] == self.name)
+        ].rename(
+            columns={'name_final': f'{tag_type.lower()}_name'}
         ).drop(
-            columns=['tag_id', 'type_final']
+            columns=['type_final', 'fandom_name']
         )
         return df
 
@@ -75,12 +70,14 @@ class Fandom:
         """
         assert relationship_type in ('romantic', 'platonic')
         rel_df = self.parse_relationships_to_characters(relationship_type)
-        rel_count = rel_df.groupby(CHARACTER_COLUMN_NAMES).agg({'work_id': 'count'}).reset_index()
-        rel_count = rel_count.sort_values(by='work_id', ascending=False).head(top_n)
+        rel_df.drop(columns='word_count_mean', inplace=True)
+        # Need to group again because of how we parse poly pairings
+        rel_count = rel_df.groupby(by=CHARACTER_COLUMN_NAMES).sum()[['works_num']].reset_index()
+        rel_count = rel_count.sort_values(by='works_num', ascending=False).head(top_n)
         # Issue is right now 'A/B' is counted differently from 'B/A'.
         # In some cases, 'B/A' won't even exist, but it needs to for the chord chart to work
         matrix = rel_count.pivot(
-            index=CHARACTER_COLUMN_NAMES[0], columns=CHARACTER_COLUMN_NAMES[1], values='work_id'
+            index=CHARACTER_COLUMN_NAMES[0], columns=CHARACTER_COLUMN_NAMES[1], values='works_num'
         )
         # Getting total list of unique characters
         characters = np.unique(rel_count[CHARACTER_COLUMN_NAMES].values)
