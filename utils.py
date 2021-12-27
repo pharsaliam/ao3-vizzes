@@ -125,9 +125,12 @@ def aggregate_works_tags_df(works_tags_df, minimum_work_count):
     )[['work_id', 'name_final', 'word_count', 'creation date']]
     works_with_fandom = works_with_fandom.rename(columns={'name_final': 'fandom_name'})
     logger.info(f"Works before filtering rare fandoms: {len(works_with_fandom['work_id'].unique())}")
-    fandom_works_count = works_with_fandom.groupby(by='fandom_name').count().reset_index()
-    rare_fandoms = fandom_works_count.query(f'work_id < {minimum_work_count}')['fandom_name']
-    works_with_fandom = works_with_fandom.loc[~works_with_fandom['fandom_name'].isin(rare_fandoms)]
+    fandom_works_count = works_with_fandom.groupby(by='fandom_name').count()['work_id'].reset_index()
+    fandom_works_count.rename(columns={'work_id': 'works_num'}, inplace=True)
+    fandom_works_count = fandom_works_count.query(f'work_id < {minimum_work_count}')
+    works_with_fandom = works_with_fandom.loc[
+        ~works_with_fandom['fandom_name'].isin(fandom_works_count['fandom_name'])
+    ]
     logger.info(f"Works after filtering rare fandoms: {len(works_with_fandom['work_id'].unique())}")
     works_tags_df_no_fandom = works_tags_df.query('type_final != "Fandom"')
     works_tags_df_no_fandom = works_tags_df_no_fandom.merge(
