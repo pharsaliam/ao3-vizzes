@@ -6,10 +6,10 @@ import streamlit as st
 LOGGING_LEVEL = logging.INFO
 WORKS_CSV = 'ao3_official_dump_210321/works-20210226.csv'
 TAGS_CSV = 'ao3_official_dump_210321/tags-20210226.csv'
-WORKS_TAGS_PARQUET = 'preprocessed_works_tags.parquet.gzip'
-TAGS_AGGREGATED_PARQUET = 'non_fandoms_tags_aggregated.parquet.gzip'
-WORKS_WITH_FANDOM_PARQUET = 'works_with_fandom.parquet.gzip'
-FANDOM_WORKS_COUNT_PARQUET = 'fandom_works_count.parquet.gzip'
+WORKS_TAGS_PARQUET = 'not_added_to_git/preprocessed_works_tags.parquet.gzip'
+TAGS_AGGREGATED_PARQUET = 'data/non_fandoms_tags_aggregated.parquet.gzip'
+WORKS_WITH_FANDOM_PARQUET = 'data/works_with_fandom.parquet.gzip'
+FANDOM_WORKS_COUNT_PARQUET = 'data/fandom_works_count.parquet.gzip'
 TAG_TYPES_TO_KEEP = ['Relationship', 'Freeform', 'ArchiveWarnings', 'Rating', 'Fandom']
 MINIMUM_WORK_COUNT = 100
 TAG_GROUPBY_LIST = ['fandom_name', 'name_final', 'type_final']
@@ -39,14 +39,20 @@ def retrieve_preprocessed_data(
 ):
     """
     Loads previously saved preprocessed and aggregated data
-    :param tags_aggregated_location:
-    :type tags_aggregated_location:
-    :param works_with_fandom_location:
-    :type works_with_fandom_location:
-    :param fandom_count_location:
-    :type fandom_count_location:
+    :param tags_aggregated_location: Location of the aggregated non-fandom tags data
+    :type tags_aggregated_location: str
+    :param works_with_fandom_location: Location of the works with fandom data
+    :type works_with_fandom_location: str
+    :param fandom_count_location: Location of the fandom count data
+    :type fandom_count_location: str
     :return:
+        - One row per fandom per non-fandom tag with count of works
+        - One row per work per fandom
+        - One row per fandom with count of works
     :rtype:
+        - pandas DataFrame
+        - pandas DataFrame
+        - pandas DataFrame
     """
     logger.info('Loading previously preprocessed data')
     non_fandom_tags_agg = pd.read_parquet(tags_aggregated_location)
@@ -61,6 +67,28 @@ def preprocess_data(
         tags_aggregated_location=TAGS_AGGREGATED_PARQUET, works_with_fandom_location=WORKS_WITH_FANDOM_PARQUET,
         fandom_count_location=FANDOM_WORKS_COUNT_PARQUET, minimum_work_count=MINIMUM_WORK_COUNT, flag_save_data=True
 ):
+    """
+    Preprocesses raw AO3 data dump. If flag_save_data=True, will save data as parquet files
+    :param works_csv_location: Location of the AO3 data dump works CSV
+    :type works_csv_location: str
+    :param tags_csv_location: Location of AO3 data dump tags CSV
+    :type tags_csv_location: str
+    :param works_tags_location: Location of file with one row per work per tag
+    :type works_tags_location: str
+    :param tags_aggregated_location: Location of file with aggregated non-fandom tag data
+    :type tags_aggregated_location: str
+    :param works_with_fandom_location: Location of file with one row per work per fandom
+                                        after filtering out rare fandoms
+    :type works_with_fandom_location: str
+    :param fandom_count_location: Location of file with aggregated fandom work count data
+    :type fandom_count_location: str
+    :param minimum_work_count: Minimum number of works a fandom must have to be included in analysis
+    :type minimum_work_count: int
+    :param flag_save_data: Whether or not to save the preprocessed data
+    :type flag_save_data: bool
+    :return: None
+    :rtype: None
+    """
     # Retrieve data
     logger.info('Preprocessing data')
     logger.info('Retrieving works_df')
@@ -91,8 +119,11 @@ def generate_works_tags_df(works_df, tags_df):
     Explodes works_df to one row per tag per work, retrieves the names
     and types of the tags, and standardizes non-canonical tags
     :param works_df: A DataFrame with work info, one row per work
+    :type works_df: pandas Dataframe
     :param tags_df: A DataFrame with tag info, one row per tag
+    : type tags_df: pandas DataFrame
     :return: A DataFrame with one row per tag per work
+    :rtype: pandas DataFrame
     """
     # Standardize non-canonical tags
     logger.info('Standardizing non-canonical tags')
@@ -120,6 +151,22 @@ def generate_works_tags_df(works_df, tags_df):
 
 
 def aggregate_works_tags_df(works_tags_df, minimum_work_count):
+    """
+    Attaches fandom to work-level data, tag-level data aggregation
+    In future iterations, this could really be done in SQL
+    :param works_tags_df: A DataFrame with one row per tag per work
+    :type works_tags_df: pandas DataFrame
+    :param minimum_work_count: Minimum number of works a fandom must have to be included in analysis
+    :type minimum_work_count: int
+    :return:
+        - One row per fandom per non-fandom tag with count of works
+        - One row per work per fandom
+        - One row per fandom with count of works
+    :rtype:
+        - pandas DataFrame
+        - pandas DataFrame
+        - pandas DataFrame
+    """
     works_with_fandom = works_tags_df.query(
         'type_final == "Fandom"'
     )[['work_id', 'name_final', 'word_count', 'creation date']]
@@ -156,9 +203,12 @@ def standardize_tags(tags_df, cols_to_coalesce):
     Standardizes tags by retrieving canonical tag information for non-canonical tags
         that have a canonical equivalent
     :param tags_df: A DataFrame with tag info, one row per tag
+    :type tags_df: pandas DataFrame
     :param cols_to_coalesce: A list of columns in tags_df for which to retrieve
         canonical information if it exists
+    :type cols_to_coalesce: list
     :return: A DataFrame with standardized fields listed in cols_to_coalesce
+    :rtype: pandas DataFrame
     """
     tags_df_std = tags_df.merge(
         tags_df,
@@ -181,6 +231,13 @@ def standardize_tags(tags_df, cols_to_coalesce):
 
 
 def format_number(number):
+    """
+    Formats number to human readable string
+    :param number: Number
+    :type number: int
+    :return: Formatted number
+    :rtype: str
+    """
     num = float('{:.3g}'.format(number))
     magnitude = 0
     while abs(num) >= 1000:
