@@ -15,6 +15,7 @@ FANDOM_ORDER_LU = {
 st.title('AO3 Data Visualizations')
 st.markdown('''
 This page displays some summary charts of the works on AO3 for a selected fandom, as of Feb. 26th, 2021. 
+Please note that only fandoms with at least 100 works at the time of data collection are included in the analysis. 
 The data used was provided by AO3 in their [March 2021 data dump](https://archiveofourown.org/admin_posts/18804). 
 ''')
 non_fandom_tags_agg, works_with_fandom, fandom_works_count = retrieve_preprocessed_data()
@@ -31,6 +32,10 @@ relationship_type = st.radio('Choose relationship type', ['romantic', 'platonic'
 fig_c, ax_c = plt.subplots()
 fandom.generate_relationship_chord_chart(relationship_type=relationship_type, ax=ax_c)
 st.pyplot(fig_c)
+st.markdown('''
+Only the most popular 50 pairings are displayed. Inspiration for chart came from 
+the visualizations of [futurephotons](https://www.futurephotons.io/ao3stats/).  
+''')
 st.subheader('Word Count Distribution')
 fig, ax = plt.subplots()
 ax, mean_word_count, median_word_count = fandom.word_count_distribution()
