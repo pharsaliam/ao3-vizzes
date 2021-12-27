@@ -177,8 +177,10 @@ def standardize_tags(tags_df, cols_to_coalesce):
     return tags_df_std
 
 
-def format_thousand(number, precision=0):
-    if precision == 0:
-        return f'{int(number / 1000)}K'
-    else:
-        return f'{round(number / 1000, precision)}K'
+def format_number(number):
+    num = float('{:.3g}'.format(number))
+    magnitude = 0
+    while abs(num) >= 1000:
+        magnitude += 1
+        num /= 1000.0
+    return '{}{}'.format('{:f}'.format(num).rstrip('0').rstrip('.'), ['', 'K', 'M', 'B', 'T'][magnitude])

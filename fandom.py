@@ -3,9 +3,10 @@ import itertools
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 from mpl_chord_diagram import chord_diagram
 
-from utils import format_thousand, TAG_TYPES_TO_KEEP
+from utils import format_number, TAG_TYPES_TO_KEEP
 
 PLT_RC_PARAMS = {
     'figure.figsize': (20, 10),
@@ -149,6 +150,9 @@ class Fandom:
                    wc_bins, labels=wc_bin_labels, include_lowest=True)
         )
         ax = works_df.groupby(by='word_count_bin')['work_id'].count().plot(kind='bar')
+        ticks_loc = ax.get_yticks().tolist()
+        ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
+        ax.set_yticklabels([format_number(s) for s in ticks_loc])
         plt.xlabel('Word Count')
         plt.ylabel('Number of Works')
         plt.xticks(rotation=45, ha='right')
@@ -173,9 +177,9 @@ class Fandom:
         wc_bins = low_wc_bins + high_wc_bins
         wc_bins.append(np.inf)
         wc_bins_labels = [
-            f'{format_thousand(wc_bins[i])} to {format_thousand(wc_bins[i + 1])}'
+            f'{format_number(wc_bins[i])} to {format_number(wc_bins[i + 1])}'
             for i in np.arange(1, len(wc_bins)-2)
         ]
-        wc_bins_labels.append('>' + format_thousand(high_wc_upper_boundary))
-        wc_bins_labels.insert(0, '<' + format_thousand(low_wc_step))
+        wc_bins_labels.append('>' + format_number(high_wc_upper_boundary))
+        wc_bins_labels.insert(0, '<' + format_number(low_wc_step))
         return wc_bins, wc_bins_labels
