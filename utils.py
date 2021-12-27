@@ -7,8 +7,10 @@ LOGGING_LEVEL = logging.INFO
 WORKS_CSV = 'ao3_official_dump_210321/works-20210226.csv'
 TAGS_CSV = 'ao3_official_dump_210321/tags-20210226.csv'
 WORKS_TAGS_PARQUET = 'not_added_to_git/preprocessed_works_tags.parquet.gzip'
-TAGS_AGGREGATED_PARQUET = 'data/non_fandoms_tags_aggregated.parquet.gzip'
-WORKS_WITH_FANDOM_PARQUET = 'data/works_with_fandom.parquet.gzip'
+WWF_CHUNK_NUM = 2
+WORKS_WITH_FANDOM_LOCATIONS = [f'data/works_with_fandom_{i}.parquet.gzip' for i in range(WWF_CHUNK_NUM)]
+TA_CHUNK_NUM = 3
+TAGS_AGGREGATED_LOCATIONS = [f'data/non_fandoms_tags_aggregated_{i}.parquet.gzip' for i in range(TA_CHUNK_NUM)]
 FANDOM_WORKS_COUNT_PARQUET = 'data/fandom_works_count.parquet.gzip'
 TAG_TYPES_TO_KEEP = ['Relationship', 'Freeform', 'ArchiveWarnings', 'Rating', 'Fandom']
 MINIMUM_WORK_COUNT = 100
@@ -33,16 +35,16 @@ logger.propagate = False
 
 @st.cache()
 def retrieve_preprocessed_data(
-        tags_aggregated_location=TAGS_AGGREGATED_PARQUET,
-        works_with_fandom_location=WORKS_WITH_FANDOM_PARQUET,
+        tags_aggregated_locations=TAGS_AGGREGATED_LOCATIONS,
+        works_with_fandom_locations=WORKS_WITH_FANDOM_LOCATIONS,
         fandom_count_location=FANDOM_WORKS_COUNT_PARQUET,
 ):
     """
     Loads previously saved preprocessed and aggregated data
-    :param tags_aggregated_location: Location of the aggregated non-fandom tags data
-    :type tags_aggregated_location: str
-    :param works_with_fandom_location: Location of the works with fandom data
-    :type works_with_fandom_location: str
+    :param tags_aggregated_locations: Location of the aggregated non-fandom tags data
+    :type tags_aggregated_locations: str
+    :param works_with_fandom_locations: Location of the works with fandom data
+    :type works_with_fandom_locations: str
     :param fandom_count_location: Location of the fandom count data
     :type fandom_count_location: str
     :return:
@@ -55,16 +57,34 @@ def retrieve_preprocessed_data(
         - pandas DataFrame
     """
     logger.info('Loading previously preprocessed data')
-    non_fandom_tags_agg = pd.read_parquet(tags_aggregated_location)
-    works_with_fandom = pd.read_parquet(works_with_fandom_location)
+    non_fandom_tags_agg = pd.DataFrame()
+    non_fandom_tags_agg = concat_data(tags_aggregated_locations, non_fandom_tags_agg)
+    works_with_fandom = pd.DataFrame()
+    works_with_fandom = concat_data(works_with_fandom_locations, works_with_fandom)
     fandom_works_count = pd.read_parquet(fandom_count_location)
     logger.info('Finished loading data')
     return non_fandom_tags_agg, works_with_fandom, fandom_works_count
 
 
+def concat_data(file_locations, final_df):
+    """
+    Reads multiple parquet files and concatenates into one DataFrame
+    :param file_locations: List of parquet file locations
+    :type file_locations: list
+    :param final_df: empty DataFrame
+    :type final_df: pandas DataFrame
+    :return: DataFrame with data from the parquet files
+    :rtype: pandas DataFrame
+    """
+    for file in file_locations:
+        df = pd.read_parquet(file)
+        final_df = pd.concat([final_df, df])
+    return final_df
+
+
 def preprocess_data(
         works_csv_location=WORKS_CSV, tags_csv_location=TAGS_CSV, works_tags_location=WORKS_TAGS_PARQUET,
-        tags_aggregated_location=TAGS_AGGREGATED_PARQUET, works_with_fandom_location=WORKS_WITH_FANDOM_PARQUET,
+        tags_aggregated_locations=TAGS_AGGREGATED_LOCATIONS, works_with_fandom_locations=WORKS_WITH_FANDOM_LOCATIONS,
         fandom_count_location=FANDOM_WORKS_COUNT_PARQUET, minimum_work_count=MINIMUM_WORK_COUNT, flag_save_data=True
 ):
     """
@@ -75,11 +95,11 @@ def preprocess_data(
     :type tags_csv_location: str
     :param works_tags_location: Location of file with one row per work per tag
     :type works_tags_location: str
-    :param tags_aggregated_location: Location of file with aggregated non-fandom tag data
-    :type tags_aggregated_location: str
-    :param works_with_fandom_location: Location of file with one row per work per fandom
+    :param tags_aggregated_locations: Location of file with aggregated non-fandom tag data
+    :type tags_aggregated_locations: str
+    :param works_with_fandom_locations: Location of file with one row per work per fandom
                                         after filtering out rare fandoms
-    :type works_with_fandom_location: str
+    :type works_with_fandom_locations: str
     :param fandom_count_location: Location of file with aggregated fandom work count data
     :type fandom_count_location: str
     :param minimum_work_count: Minimum number of works a fandom must have to be included in analysis
@@ -102,13 +122,24 @@ def preprocess_data(
     non_fandom_tags_agg, works_with_fandom, fandom_works_count = aggregate_works_tags_df(
         works_tags_df, minimum_work_count
     )
+    # TODO Clean up the saving in chunks sections up
     if flag_save_data:
         logger.info(f'Saving preprocessed works tags data to {works_tags_location}')
         works_tags_df.to_parquet(works_tags_location, **TO_PARQUET_CONFIG)
-        logger.info(f'Saving aggregated non fandom tags data to {tags_aggregated_location}')
-        non_fandom_tags_agg.to_parquet(tags_aggregated_location, **TO_PARQUET_CONFIG)
-        logger.info(f'Saving works with fandoms data to {works_with_fandom_location}')
-        works_with_fandom.to_parquet(works_with_fandom_location, **TO_PARQUET_CONFIG)
+        logger.info(f'Saving aggregated non fandom tags data to {tags_aggregated_locations}')
+        ta_chunk_size = int(len(non_fandom_tags_agg) / TA_CHUNK_NUM)
+        non_fandom_tags_agg[:ta_chunk_size].to_parquet(tags_aggregated_locations[0], **TO_PARQUET_CONFIG)
+        non_fandom_tags_agg[ta_chunk_size:2 * ta_chunk_size].to_parquet(
+            tags_aggregated_locations[1], **TO_PARQUET_CONFIG
+        )
+
+        non_fandom_tags_agg[2 * ta_chunk_size:].to_parquet(
+            tags_aggregated_locations[2], **TO_PARQUET_CONFIG
+        )
+        logger.info(f'Saving works with fandoms data to {works_with_fandom_locations}')
+        wwf_chunk_size = int(len(works_with_fandom) / WWF_CHUNK_NUM)
+        works_with_fandom[:wwf_chunk_size].to_parquet(works_with_fandom_locations[0], **TO_PARQUET_CONFIG)
+        works_with_fandom[wwf_chunk_size:].to_parquet(works_with_fandom_locations[1], **TO_PARQUET_CONFIG)
         logger.info(f'Saving fandom work counts data to {fandom_count_location}')
         fandom_works_count.to_parquet(fandom_count_location, **TO_PARQUET_CONFIG)
     return None
