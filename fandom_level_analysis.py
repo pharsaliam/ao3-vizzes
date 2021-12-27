@@ -39,10 +39,9 @@ the visualizations of [futurephotons](https://www.futurephotons.io/ao3stats/).
 st.subheader('Word Count Distribution')
 fig, ax = plt.subplots()
 ax, mean_word_count, median_word_count = fandom.word_count_distribution()
-st.text(f'''
-The mean word count for {FANDOM} fics is {mean_word_count}.
-The median word count for {FANDOM} fics is {median_word_count}
-''')
+col1, col2 = st.columns(2)
+col1.metric('Mean', mean_word_count)
+col2.metric('Median', median_word_count)
 st.pyplot(fig)
 
 
