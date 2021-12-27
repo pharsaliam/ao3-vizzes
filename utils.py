@@ -19,7 +19,6 @@ TAG_GROUPBY_AGG = {
 }
 TO_PARQUET_CONFIG = {'index': 'False', 'compression': 'gzip'}
 
-# TODO Figure out why duplicate logs
 logger = logging.getLogger('LOG')
 logger.setLevel(LOGGING_LEVEL)
 ch = logging.StreamHandler()
@@ -29,9 +28,10 @@ formatter = logging.Formatter(
 )
 ch.setFormatter(formatter)
 logger.addHandler(ch)
+logger.propagate = False
 
 
-@st.cache(hash_funcs={pd._libs.parsers.TextReader: id})
+@st.cache()
 def retrieve_preprocessed_data(
         tags_aggregated_location=TAGS_AGGREGATED_PARQUET,
         works_with_fandom_location=WORKS_WITH_FANDOM_PARQUET,
