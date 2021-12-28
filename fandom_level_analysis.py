@@ -33,9 +33,15 @@ fig_c, ax_c = plt.subplots()
 fandom.generate_relationship_chord_chart(relationship_type=relationship_type, ax=ax_c)
 st.pyplot(fig_c)
 st.markdown('''
-Only the most popular 50 pairings are displayed. Inspiration for chart came from 
-the visualizations of [futurephotons](https://www.futurephotons.io/ao3stats/).  
+Inspiration for chart came from the visualizations of [futurephotons](https://www.futurephotons.io/ao3stats/).  
 ''')
+with st.expander('Methodology notes'):
+    st.markdown('''
+        Only the most popular 50 relationships are displayed.\n
+        Relationships with 2+ characters were counted in their respective pairs.
+        For example, a relationship between A/B/C is counted separately
+        as A/B, A/C, and B/C.  
+    ''')
 st.subheader('Word Count Distribution')
 fig, ax = plt.subplots()
 ax, mean_word_count, median_word_count = fandom.word_count_distribution()
