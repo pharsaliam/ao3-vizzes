@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
+from matplotlib.colors import LinearSegmentedColormap
 from mpl_chord_diagram import chord_diagram
 
 from utils import format_number, TAG_TYPES_TO_KEEP
@@ -17,6 +18,17 @@ PLT_RC_PARAMS = {
 plt.style.use('ggplot')
 for k, v in PLT_RC_PARAMS.items():
     plt.rcParams[k] = v
+colors = [
+    'lightseagreen',
+    'tomato',
+    'gold',
+    'cornflowerblue',
+    'violet',
+    'lawngreen',
+    'lightskyblue',
+    'darkorange'
+]
+custom_cmap = LinearSegmentedColormap.from_list('mycmap', colors)
 
 RELATIONSHIP_SEPARATOR_LU = {
     'romantic': '/',
@@ -92,7 +104,7 @@ class Fandom:
             names=matrix.columns,
             rotate_names=[True for c in matrix.columns],
             use_gradient=True,
-            cmap='tab20',
+            cmap=custom_cmap,
             ax=ax
         )
         if save_fig:
@@ -149,7 +161,7 @@ class Fandom:
             pd.cut(works_df['word_count'],
                    wc_bins, labels=wc_bin_labels, include_lowest=True)
         )
-        ax = works_df.groupby(by='word_count_bin')['work_id'].count().plot(kind='bar')
+        ax = works_df.groupby(by='word_count_bin')['work_id'].count().plot(kind='bar', color='green')
         ticks_loc = ax.get_yticks().tolist()
         ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
         ax.set_yticklabels([format_number(s) for s in ticks_loc])
