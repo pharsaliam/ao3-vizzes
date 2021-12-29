@@ -40,7 +40,7 @@ CHARACTER_COLUMN_NAMES = ['char_1', 'char_2']
 class Fandom:
     def __init__(self, name, works_with_fandom, non_fandom_tags_agg):
         self.name = name
-        self.works = works_with_fandom.loc[works_with_fandom['fandom_name'] == self.name]
+        self.works = works_with_fandom.loc[self.name]
         self.relationships = self.retrieve_tags_by_type(non_fandom_tags_agg, 'Relationship')
         relationship_conditions = [
             self.relationships['relationship_name'].str.contains(split)
@@ -61,12 +61,11 @@ class Fandom:
         """
         assert tag_type in [s for s in TAG_TYPES_TO_KEEP if s != 'Fandom']
         df = non_fandom_tags_agg.loc[
-            (non_fandom_tags_agg['type_final'] == tag_type)
-            & (non_fandom_tags_agg['fandom_name'] == self.name)
+            self.name, tag_type
         ].rename(
             columns={'name_final': f'{tag_type.lower()}_name'}
-        ).drop(
-            columns=['type_final', 'fandom_name']
+        ).reset_index(
+            drop=True
         )
         return df
 
@@ -161,7 +160,7 @@ class Fandom:
             pd.cut(works_df['word_count'],
                    wc_bins, labels=wc_bin_labels, include_lowest=True)
         )
-        ax = works_df.groupby(by='word_count_bin')['work_id'].count().plot(kind='bar', color='green')
+        ax = works_df.groupby(by='word_count_bin')['creation date'].count().plot(kind='bar', color='green')
         ticks_loc = ax.get_yticks().tolist()
         ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
         ax.set_yticklabels([format_number(s) for s in ticks_loc])

@@ -11,7 +11,6 @@ FANDOM_ORDER_LU = {
     'Alphabetically': {'by': 'fandom_name', 'ascending': True}
 }
 
-
 st.title('AO3 Data Visualizations')
 st.markdown('''
 This page displays some summary charts of the works on AO3 for a selected fandom, as of Feb. 26th, 2021. 
@@ -19,6 +18,7 @@ Please note that only fandoms with at least 100 works at the time of data collec
 The data used was provided by AO3 in their [March 2021 data dump](https://archiveofourown.org/admin_posts/18804). 
 ''')
 non_fandom_tags_agg, works_with_fandom, fandom_works_count = retrieve_preprocessed_data()
+fandom_works_count = fandom_works_count.reset_index()
 col1, col2 = st.columns([1, 2])
 fandom_order = col1.radio('View fandom list ordered by', [s for s in FANDOM_ORDER_LU.keys()])
 fandom_select_list = fandom_works_count.sort_values(**FANDOM_ORDER_LU[fandom_order])
