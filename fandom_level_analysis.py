@@ -14,8 +14,8 @@ FANDOM_ORDER_LU = {
 st.title('AO3 Data Visualizations')
 st.markdown('''
 This page displays some summary charts of the works on AO3 for a selected fandom, as of Feb. 26th, 2021. 
-Please note that only fandoms with at least 100 works at the time of data collection are included in the analysis. 
-The data used was provided by AO3 in their [March 2021 data dump](https://archiveofourown.org/admin_posts/18804). 
+ The data used was provided by AO3 in their [March 2021 data dump](https://archiveofourown.org/admin_posts/18804).
+ Methodology notes are contained at the bottom of the page. 
 ''')
 non_fandom_tags_agg, works_with_fandom, fandom_works_count = retrieve_preprocessed_data()
 fandom_works_count = fandom_works_count.reset_index()
@@ -35,13 +35,6 @@ st.pyplot(fig_c)
 st.markdown('''
 Inspiration for chart came from the visualizations of [futurephotons](https://www.futurephotons.io/ao3stats/).  
 ''')
-with st.expander('Methodology notes'):
-    st.markdown('''
-        Only the most popular 50 relationships are displayed.\n
-        Relationships with 2+ characters were counted in their respective pairs.
-        For example, a relationship between A/B/C is counted separately
-        as A/B, A/C, and B/C.  
-    ''')
 st.subheader('Word Count Distribution')
 fig, ax = plt.subplots()
 ax, mean_word_count, median_word_count = fandom.word_count_distribution()
@@ -49,5 +42,20 @@ col1, col2 = st.columns(2)
 col1.metric('Mean', mean_word_count)
 col2.metric('Median', median_word_count)
 st.pyplot(fig)
-
+with st.expander('Methodology notes'):
+    st.markdown('''
+            __General__\n
+            - Only fandoms with at least 100 works at the time of data collection are included in the analysis.
+            - When selecting a fandom, please note that works with equivalent tags are included, but not works with
+            subtags. For example, in the "DCU" tag, "DCU (Animated)" is an equivalent tag, but "Birds of Prey (TV)"
+            is a subtag. This is a little different from the AO3 website, which seems to include all works with
+            equivalent tags and subtags for a fandom. While I would have liked to replicate that, I am not able
+            to link parent and child tags with the tag information provided in the data dump. 
+            - Some works seem to be tagged with tags with redacted names. In those cases, I tried to match the 
+            tag with any equivalent tags. However, if one could not be found, I dropped the tag entirely.
+            __Relationship chord chart__\n
+            - Only the most popular 50 relationships are displayed.
+            - Relationships with 2+ characters were counted in their respective pairs.
+                - For example, a relationship between A/B/C is counted separately as A/B, A/C, and B/C.  
+        ''')
 

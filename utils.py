@@ -62,6 +62,7 @@ def retrieve_preprocessed_data(
     works_with_fandom = pd.DataFrame()
     works_with_fandom = concat_data(works_with_fandom_locations, works_with_fandom)
     fandom_works_count = pd.read_parquet(fandom_count_location)
+    # TODO Remove this once the data files get refreshed
     works_with_fandom = works_with_fandom.set_index(['fandom_name', 'work_id']).sort_index()
     non_fandom_tags_agg = non_fandom_tags_agg.set_index(['fandom_name', 'type_final']).sort_index()
     fandom_works_count = fandom_works_count.set_index('fandom_name').sort_index()
