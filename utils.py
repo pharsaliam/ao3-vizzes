@@ -33,7 +33,7 @@ logger.addHandler(ch)
 logger.propagate = False
 
 
-@st.cache()
+@st.experimental_memo()
 def retrieve_preprocessed_data(
         tags_aggregated_locations=TAGS_AGGREGATED_LOCATIONS,
         works_with_fandom_locations=WORKS_WITH_FANDOM_LOCATIONS,
