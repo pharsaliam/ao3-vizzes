@@ -56,9 +56,12 @@ class Fandom:
     def retrieve_tags_by_type(self, non_fandom_tags_agg, tag_type):
         """
         Retrieve works_tags_df by tag type
-        :param non_fandom_tags_agg: DataFrame containing aggregated non-fandom tag data
-        :param tag_type: Type of non-Fandom tag (see TAG_TYPES_TO_KEEP in utils for full list)
-        :return: Subset of works_tags_df that only contains the specified tag type
+        :param non_fandom_tags_agg: DataFrame containing aggregated non-fandom
+            tag data
+        :param tag_type: Type of non-Fandom tag (see TAG_TYPES_TO_KEEP in utils
+            for full list)
+        :return: Subset of works_tags_df that only contains the specified tag
+            type
         """
         assert tag_type in [s for s in TAG_TYPES_TO_KEEP if s != 'Fandom']
         df = (
@@ -76,7 +79,8 @@ class Fandom:
         :param relationship_type: 'romantic' or 'platonic'
         :param top_n: Top N relationships by number of fics to display
         :param ax: Matplotlib axis where the plot should be drawn.
-        :param save_fig: Boolean indicating whether or not to save the chord chart as image
+        :param save_fig: Boolean indicating whether or not to save the chord
+            chart as image
         :return: None
         """
         assert relationship_type in ('romantic', 'platonic')
@@ -92,7 +96,7 @@ class Fandom:
             by='works_num', ascending=False
         ).head(top_n)
         # Issue is right now 'A/B' is counted differently from 'B/A'.
-        # In some cases, 'B/A' won't even exist, but it needs to for the chord chart to work
+        # In some cases, 'B/A' won't even exist, so we force it
         matrix = rel_count.pivot(
             index=CHARACTER_COLUMN_NAMES[0],
             columns=CHARACTER_COLUMN_NAMES[1],
@@ -123,9 +127,11 @@ class Fandom:
     def parse_relationships_to_characters(self, relationship_type):
         """
         Parses the characters in relationships
-        Note that currently poly relationships are split to pairs (e.g., A/B/C -> A/B, A/C, B/C)
+        Note that currently poly relationships are split to pairs
+            (e.g., A/B/C -> A/B, A/C, B/C)
         :param relationship_type: 'romantic' or 'platonic'
-        :return: relationship dataframe with two new columns indicating the characters in that ship
+        :return: relationship dataframe with two new columns indicating the
+            characters in that ship
         """
         # Filtering by relationship type
         relationship_split = RELATIONSHIP_SEPARATOR_LU[relationship_type]
@@ -136,7 +142,6 @@ class Fandom:
             relationship_split
         )
         # Assess the number of characters in the ship to filter poly ships
-        # At this point, we are going with the route where we split poly ships to their pairs
         rel_df['relationship_chars_combo'] = rel_df[
             'relationship_chars'
         ].apply(lambda x: list(itertools.combinations(x, 2)))
@@ -161,12 +166,14 @@ class Fandom:
     ):
         """
         Provides visualizations, statistics on binned word count distribution
-        :param low_wc_upper_boundary: Upper boundary for fic to be considered "low" word count
+        :param low_wc_upper_boundary: Upper boundary for fic to be considered
+            "low" word count
         :param low_wc_step: Bin steps for low word count bins
-        :param high_wc_upper_boundary: Upper boundary for bins (e.g., words counts greater than this
-            will all be lumped together into the last bin)
+        :param high_wc_upper_boundary: Upper boundary for bins
+            (e.g., words counts greater than this will all be lumped together
+            into the last bin)
         :param high_wc_step: Bin steps for high word count bins
-        :return: Matplotlib axis containing the binned word count distribution plot
+        :return: Matplotlib axis containing the binned word count distribution
             Mean word count
             Median word count
         """
@@ -207,10 +214,12 @@ class Fandom:
     ):
         """
         Generates word count bins and bin labels
-        :param low_wc_upper_boundary: Upper boundary for fic to be considered "low" word count
+        :param low_wc_upper_boundary: Upper boundary for fic to be considered
+            "low" word count
         :param low_wc_step: Bin steps for low word count bins
-        :param high_wc_upper_boundary: Upper boundary for bins (e.g., words counts greater than this
-            will all be lumped together into the last bin)
+        :param high_wc_upper_boundary: Upper boundary for bins
+            (e.g., words counts greater than this will all be lumped together
+            into the last bin)
         :param high_wc_step: Bin steps for high word count bins
         :return: Word count bins and bin labels
         """

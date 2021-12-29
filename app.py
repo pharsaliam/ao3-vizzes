@@ -36,22 +36,21 @@ def run():
     with st.expander('General methodology notes'):
         st.markdown(
             '''
-                __General__\n
-                - Only fandoms with at least 100 works at the time of data 
-                collection are included in the analysis.
-                - When selecting a fandom, please note that works with 
-                equivalent tags are included, but not works with subtags. 
-                For example, in the "DCU" tag, "DCU (Animated)" is an 
-                equivalent tag, but "Birds of Prey (TV)" is a subtag. 
-                This is a little different from the AO3 website, 
-                which seems to include all works with equivalent tags and 
-                subtags for a fandom. While I would have liked to replicate 
-                that, I am not able to link parent and child tags with the 
-                tag information provided in the data dump. 
-                - Some works seem to be tagged with tags with redacted names. 
-                In those cases, I tried to match the tag with any equivalent 
-                tags. However, if one could not be found, I dropped the tag 
-                entirely.
+            - Only fandoms with at least 100 works at the time of data 
+            collection are included in the analysis.
+            - When selecting a fandom, please note that works with 
+            equivalent tags are included, but not works with subtags. 
+            For example, in the "DCU" tag, "DCU (Animated)" is an 
+            equivalent tag (included), but "Birds of Prey (TV)" is a subtag 
+            (excluded). This is a little different from the AO3 website, 
+            which seems to include all works with equivalent tags and 
+            subtags for a fandom. While I would have liked to replicate 
+            that, I am not able to link parent and child tags with the 
+            tag information provided in the data dump. 
+            - Some works seem to be contain tags with redacted names. 
+            In those cases, I tried to match the tag with any non-redacted 
+            equivalent tags. However, if one could not be found, I dropped the 
+            tag entirely.
         '''
         )
     with st.expander('Source'):
@@ -60,6 +59,7 @@ def run():
         The source data was provided by 
         AO3 in their [March 2021 data dump]
         (https://archiveofourown.org/admin_posts/18804).
+        The data appears to be collected up to Feb 26th, 2021. 
         '''
         )
 

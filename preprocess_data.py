@@ -29,21 +29,25 @@ def preprocess_data(
     flag_save_data=True,
 ):
     """
-    Preprocesses raw AO3 data dump. If flag_save_data=True, will save data as parquet files
+    Preprocesses raw AO3 data dump. If flag_save_data=True, will save data as
+        parquet files
     :param works_csv_location: Location of the AO3 data dump works CSV
     :type works_csv_location: str
     :param tags_csv_location: Location of AO3 data dump tags CSV
     :type tags_csv_location: str
     :param works_tags_location: Location of file with one row per work per tag
     :type works_tags_location: str
-    :param tags_aggregated_locations: Location of file with aggregated non-fandom tag data
+    :param tags_aggregated_locations: Location of file with aggregated
+        non-fandom tag data
     :type tags_aggregated_locations: str
-    :param works_with_fandom_locations: Location of file with one row per work per fandom
-                                        after filtering out rare fandoms
+    :param works_with_fandom_locations: Location of file with one row per work
+        per fandom after filtering out rare fandoms
     :type works_with_fandom_locations: str
-    :param fandom_count_location: Location of file with aggregated fandom work count data
+    :param fandom_count_location: Location of file with aggregated fandom work
+        count data
     :type fandom_count_location: str
-    :param minimum_work_count: Minimum number of works a fandom must have to be included in analysis
+    :param minimum_work_count: Minimum number of works a fandom must have to
+        be included in analysis
     :type minimum_work_count: int
     :param flag_save_data: Whether or not to save the preprocessed data
     :type flag_save_data: bool
@@ -72,7 +76,8 @@ def preprocess_data(
         )
         works_tags_df.to_parquet(works_tags_location, **TO_PARQUET_CONFIG)
         logger.info(
-            f'Saving aggregated non fandom tags data to {tags_aggregated_locations}'
+            f'Saving aggregated non fandom tags data '
+            f'to {tags_aggregated_locations}'
         )
         ta_chunk_size = int(len(non_fandom_tags_agg) / TA_CHUNK_NUM)
         non_fandom_tags_agg[:ta_chunk_size].to_parquet(
@@ -155,7 +160,8 @@ def aggregate_works_tags_df(works_tags_df, minimum_work_count):
     In future iterations, this could really be done in SQL
     :param works_tags_df: A DataFrame with one row per tag per work
     :type works_tags_df: pandas DataFrame
-    :param minimum_work_count: Minimum number of works a fandom must have to be included in analysis
+    :param minimum_work_count: Minimum number of works a fandom must have to be
+     included in analysis
     :type minimum_work_count: int
     :return:
         - One row per fandom per non-fandom tag with count of works
@@ -172,9 +178,6 @@ def aggregate_works_tags_df(works_tags_df, minimum_work_count):
     works_with_fandom = works_with_fandom.rename(
         columns={'name_final': 'fandom_name'}
     ).drop_duplicates()
-    logger.info(
-        f"Works before filtering rare fandoms: {len(works_with_fandom['work_id'].unique())}"
-    )
     fandom_works_count = (
         works_with_fandom.groupby(by='fandom_name')
         .count()['work_id']
@@ -189,9 +192,6 @@ def aggregate_works_tags_df(works_tags_df, minimum_work_count):
             fandom_works_count['fandom_name']
         )
     ]
-    logger.info(
-        f"Works after filtering rare fandoms: {len(works_with_fandom['work_id'].unique())}"
-    )
     works_tags_df_no_fandom = works_tags_df.query(
         'type_final != "Fandom"'
     ).drop(columns='tag_id')
@@ -215,8 +215,8 @@ def aggregate_works_tags_df(works_tags_df, minimum_work_count):
 
 def standardize_tags(tags_df, cols_to_coalesce):
     """
-    Standardizes tags by retrieving canonical tag information for non-canonical tags
-        that have a canonical equivalent
+    Standardizes tags by retrieving canonical tag information for non-canonical
+        tags that have a canonical equivalent
     :param tags_df: A DataFrame with tag info, one row per tag
     :type tags_df: pandas DataFrame
     :param cols_to_coalesce: A list of columns in tags_df for which to retrieve

@@ -56,9 +56,9 @@ class InterFandomAnalysis:
                 line=dict(width=1, color='darkslategrey'),
             ),
             hovertemplate="<b>%{customdata[0]}</b><br><br>"
+            + "Most Popular Relationship: %{customdata[1]}"
             + "Percent of Total Works in Fandom: %{x:.0%}<br>"
-            + "Number of Total Works in Fandom: %{y:.3s}<br>"
-            + "Most Popular Relationship: %{customdata[1]}",
+            + "Number of Total Works in Fandom: %{y:.3s}<br>",
         )
         fig.update_layout(
             xaxis=dict(
@@ -75,11 +75,11 @@ class InterFandomAnalysis:
             '''
             The chart below plots the popularity of the most popular pairing 
             for the top 100 fandoms by number of works. 
-            Each dot represents one fandom. 
+            Each dot represents one fandom. Zoom in and hover over each dot 
+            for details on which fandom and pairing each dot represents.
             The x axis represents the percent of total works within the fandom 
             that are tagged with the most popular pairing.
-            The y axis represents the total number of works within the fandom. 
-            Zoom in and hover over each dot for details on which fandom 
-            and pairing each shows. 
+            The y axis represents the total number of works within the fandom 
+            as of the time of data collection.    
         '''
         )

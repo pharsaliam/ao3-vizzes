@@ -50,7 +50,8 @@ def retrieve_preprocessed_data(
 ):
     """
     Loads previously saved preprocessed and aggregated data
-    :param tags_aggregated_locations: Location of the aggregated non-fandom tags data
+    :param tags_aggregated_locations: Location of the aggregated non-fandom
+        tags data
     :type tags_aggregated_locations: str
     :param works_with_fandom_locations: Location of the works with fandom data
     :type works_with_fandom_locations: str
