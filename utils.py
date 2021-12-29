@@ -4,8 +4,8 @@ import pandas as pd
 import streamlit as st
 
 LOGGING_LEVEL = logging.INFO
-WORKS_CSV = 'ao3_official_dump_210321/works-20210226.csv'
-TAGS_CSV = 'ao3_official_dump_210321/tags-20210226.csv'
+WORKS_CSV = 'data/ao3_official_dump_210321/works-20210226.csv'
+TAGS_CSV = 'data/ao3_official_dump_210321/tags-20210226.csv'
 WORKS_TAGS_PARQUET = 'not_added_to_git/preprocessed_works_tags.parquet.gzip'
 WWF_CHUNK_NUM = 2
 WORKS_WITH_FANDOM_LOCATIONS = [f'data/works_with_fandom_{i}.parquet.gzip' for i in range(WWF_CHUNK_NUM)]

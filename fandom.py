@@ -107,7 +107,10 @@ class Fandom:
             ax=ax
         )
         if save_fig:
-            plt.savefig(f'images/{self.name.replace(" ", "_")}_chord_chart.png')
+            plt.savefig(
+                f'not_added_to_git/images/{self.name.replace(" ", "_")}'
+                f'_chord_chart.png'
+            )
         return None
 
     def parse_relationships_to_characters(self, relationship_type):
