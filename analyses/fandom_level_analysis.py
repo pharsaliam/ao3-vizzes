@@ -1,20 +1,18 @@
 import matplotlib.pyplot as plt
 import streamlit as st
 
-from utils import (
-    logger, format_number
-)
+from utils import logger, format_number
 from fandom import Fandom
 
 FANDOM_ORDER_LU = {
     'Popularity by Work Count': {'by': 'works_num', 'ascending': False},
-    'Alphabetically': {'by': 'fandom_name', 'ascending': True}
+    'Alphabetically': {'by': 'fandom_name', 'ascending': True},
 }
 
 
 class FandomLevelAnalysis:
     def __init__(
-            self, non_fandom_tags_agg, works_with_fandom, fandom_works_count
+        self, non_fandom_tags_agg, works_with_fandom, fandom_works_count
     ):
         fandom_works_count = fandom_works_count.reset_index()
         col1, col2 = st.columns([1, 2])
@@ -46,26 +44,31 @@ class FandomLevelAnalysis:
             relationship_type=relationship_type, ax=ax_c
         )
         st.pyplot(fig_c)
-        st.markdown('''
+        st.markdown(
+            '''
             Inspiration for chart came from the visualizations of 
             [futurephotons](https://www.futurephotons.io/ao3stats/).  
-        ''')
+        '''
+        )
         with st.expander('Methodology notes'):
-            st.markdown('''
+            st.markdown(
+                '''
                     - Only the most popular 50 relationships are displayed.
                     - Relationships with 2+ characters were counted in their 
                     respective pairs.
                         - For example, a relationship between A/B/C is counted 
                         separately as A/B, A/C, and B/C.  
-                ''')
+                '''
+            )
         st.markdown('***')
         st.subheader('Word Count Distribution')
         fig, ax = plt.subplots()
-        ax, mean_word_count, median_word_count = \
-            fandom.word_count_distribution()
+        (
+            ax,
+            mean_word_count,
+            median_word_count,
+        ) = fandom.word_count_distribution()
         col1, col2 = st.columns(2)
         col1.metric('Mean', mean_word_count)
         col2.metric('Median', median_word_count)
         st.pyplot(fig)
-
-

@@ -11,19 +11,21 @@ ANALYSIS_TYPES = {
 
 
 def run():
-    st.set_page_config(
-        initial_sidebar_state='expanded',
-        page_icon=':goblin:'
-    )
-    non_fandom_tags_agg, works_with_fandom, fandom_works_count = \
-        retrieve_preprocessed_data()
+    st.set_page_config(initial_sidebar_state='expanded', page_icon=':goblin:')
+    (
+        non_fandom_tags_agg,
+        works_with_fandom,
+        fandom_works_count,
+    ) = retrieve_preprocessed_data()
     st.title('AO3 Data Visualizations')
-    st.markdown('''
+    st.markdown(
+        '''
         This page displays some charts examining the works on AO3 as of Feb 
         26th, 2021. Please use the sidebar menu to select a type of analysis. 
         Source and general methodology are described at the bottom of the page, 
         while chart-specific notes are found below each chart. 
-    ''')
+    '''
+    )
     st.markdown('***')
     analysis_type = st.sidebar.radio('Choose an analysis', ANALYSIS_TYPES)
     # Initializes the class with the analysis
@@ -32,7 +34,8 @@ def run():
     )
     st.markdown('***')
     with st.expander('General methodology notes'):
-        st.markdown('''
+        st.markdown(
+            '''
                 __General__\n
                 - Only fandoms with at least 100 works at the time of data 
                 collection are included in the analysis.
@@ -49,13 +52,16 @@ def run():
                 In those cases, I tried to match the tag with any equivalent 
                 tags. However, if one could not be found, I dropped the tag 
                 entirely.
-        ''')
+        '''
+        )
     with st.expander('Source'):
-        st.markdown('''
+        st.markdown(
+            '''
         The source data was provided by 
         AO3 in their [March 2021 data dump]
         (https://archiveofourown.org/admin_posts/18804).
-        ''')
+        '''
+        )
 
 
 if __name__ == '__main__':
