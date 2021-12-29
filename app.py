@@ -1,8 +1,8 @@
 import streamlit as st
 
 from utils import retrieve_preprocessed_data
-from fandom_level_analysis import FandomLevelAnalysis
-from inter_fandom_analysis import InterFandomAnalysis
+from analyses.fandom_level_analysis import FandomLevelAnalysis
+from analyses.inter_fandom_analysis import InterFandomAnalysis
 
 ANALYSIS_TYPES = {
     'Fandom Level': FandomLevelAnalysis,
