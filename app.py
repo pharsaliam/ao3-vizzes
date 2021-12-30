@@ -8,16 +8,21 @@ ANALYSIS_TYPES = {
     'Fandom Level': FandomLevelAnalysis,
     'Inter-fandom': InterFandomAnalysis,
 }
+PAGE_TITLE = 'AO3 Data Visualizations'
 
 
 def run():
-    st.set_page_config(initial_sidebar_state='expanded', page_icon=':goblin:')
+    st.set_page_config(
+        initial_sidebar_state='expanded',
+        page_icon='👺',
+        page_title=PAGE_TITLE
+    )
     (
         non_fandom_tags_agg,
         works_with_fandom,
         fandom_works_count,
     ) = retrieve_preprocessed_data()
-    st.title('AO3 Data Visualizations')
+    st.title(PAGE_TITLE)
     st.markdown(
         '''
         This page displays some charts examining the works on AO3 as of Feb 
