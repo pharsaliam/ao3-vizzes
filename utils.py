@@ -42,7 +42,7 @@ logger.addHandler(ch)
 logger.propagate = False
 
 
-@st.experimental_memo(ttl=60*60*12)
+@st.experimental_memo(ttl=60*60*6)
 def retrieve_preprocessed_data(
     tags_aggregated_locations=TAGS_AGGREGATED_LOCATIONS,
     works_with_fandom_locations=WORKS_WITH_FANDOM_LOCATIONS,
