@@ -5,12 +5,11 @@ from utils import (
     WORKS_CSV,
     TAGS_CSV,
     WORKS_TAGS_PARQUET,
-    TAGS_AGGREGATED_LOCATIONS,
-    WORKS_WITH_FANDOM_LOCATIONS,
-    FANDOM_WORKS_COUNT_PARQUET,
+    NON_FANDOM_TAGS_AGG_LOC,
+    WORKS_WITH_FANDOM_LOC,
+    FANDOM_WORKS_COUNT_LOC,
+    DATA_DIRECTORY,
     MINIMUM_WORK_COUNT,
-    TA_CHUNK_NUM,
-    WWF_CHUNK_NUM,
     TAG_TYPES_TO_KEEP,
     TO_PARQUET_CONFIG,
     TAG_GROUPBY_AGG,
@@ -21,12 +20,8 @@ from utils import (
 def preprocess_data(
     works_csv_location=WORKS_CSV,
     tags_csv_location=TAGS_CSV,
-    works_tags_location=WORKS_TAGS_PARQUET,
-    tags_aggregated_locations=TAGS_AGGREGATED_LOCATIONS,
-    works_with_fandom_locations=WORKS_WITH_FANDOM_LOCATIONS,
-    fandom_count_location=FANDOM_WORKS_COUNT_PARQUET,
     minimum_work_count=MINIMUM_WORK_COUNT,
-    flag_save_data=True,
+    flag_save_works_tags_df=True,
 ):
     """
     Preprocesses raw AO3 data dump. If flag_save_data=True, will save data as
@@ -69,43 +64,25 @@ def preprocess_data(
         works_with_fandom,
         fandom_works_count,
     ) = aggregate_works_tags_df(works_tags_df, minimum_work_count)
-    # TODO Clean up the saving in chunks sections up
-    if flag_save_data:
-        logger.info(
-            f'Saving preprocessed works tags data to {works_tags_location}'
+    save_data_to_parquet(
+        non_fandom_tags_agg, NON_FANDOM_TAGS_AGG_LOC
+    )
+    save_data_to_parquet(
+        works_with_fandom, WORKS_WITH_FANDOM_LOC
+    )
+    save_data_to_parquet(
+        fandom_works_count, FANDOM_WORKS_COUNT_LOC
+    )
+    if flag_save_works_tags_df:
+        save_data_to_parquet(
+            works_tags_df, WORKS_TAGS_PARQUET
         )
-        works_tags_df.to_parquet(works_tags_location, **TO_PARQUET_CONFIG)
-        logger.info(
-            f'Saving aggregated non fandom tags data '
-            f'to {tags_aggregated_locations}'
-        )
-        ta_chunk_size = int(len(non_fandom_tags_agg) / TA_CHUNK_NUM)
-        non_fandom_tags_agg[:ta_chunk_size].to_parquet(
-            tags_aggregated_locations[0], **TO_PARQUET_CONFIG
-        )
-        non_fandom_tags_agg[ta_chunk_size : 2 * ta_chunk_size].to_parquet(
-            tags_aggregated_locations[1], **TO_PARQUET_CONFIG
-        )
+    return None
 
-        non_fandom_tags_agg[2 * ta_chunk_size :].to_parquet(
-            tags_aggregated_locations[2], **TO_PARQUET_CONFIG
-        )
-        logger.info(
-            f'Saving works with fandoms data to {works_with_fandom_locations}'
-        )
-        wwf_chunk_size = int(len(works_with_fandom) / WWF_CHUNK_NUM)
-        works_with_fandom[:wwf_chunk_size].to_parquet(
-            works_with_fandom_locations[0], **TO_PARQUET_CONFIG
-        )
-        works_with_fandom[wwf_chunk_size:].to_parquet(
-            works_with_fandom_locations[1], **TO_PARQUET_CONFIG
-        )
-        logger.info(
-            f'Saving fandom work counts data to {fandom_count_location}'
-        )
-        fandom_works_count.to_parquet(
-            fandom_count_location, **TO_PARQUET_CONFIG
-        )
+
+def save_data_to_parquet(df, file_location):
+    df.to_parquet(file_location, **TO_PARQUET_CONFIG)
+    logger.info(f'Data saved to {file_location}')
     return None
 
 
@@ -210,7 +187,35 @@ def aggregate_works_tags_df(works_tags_df, minimum_work_count):
         columns={'work_id': 'works_num', 'word_count': 'word_count_mean'},
         inplace=True,
     )
+    works_with_fandom = works_with_fandom.set_index(
+        ['fandom_name', 'work_id']
+    ).sort_index()
+    non_fandom_tags_agg = non_fandom_tags_agg.set_index(
+        ['fandom_name', 'type_final']
+    ).sort_index()
+    fandom_works_count = fandom_works_count.set_index(
+        'fandom_name'
+    ).sort_index()
+    non_fandom_tags_agg = use_efficient_dtypes(non_fandom_tags_agg)
+    works_with_fandom = use_efficient_dtypes(works_with_fandom)
+    fandom_works_count = use_efficient_dtypes(fandom_works_count)
     return non_fandom_tags_agg, works_with_fandom, fandom_works_count
+
+
+def use_efficient_dtypes(df):
+    for col in df.columns:
+        if pd.api.types.is_integer_dtype(df[col]):
+            df[col] = pd.to_numeric(df[col], downcast='integer')
+        elif pd.api.types.is_float_dtype(df[col]):
+            df[col] = pd.to_numeric(df[col], downcast='float')
+        elif (
+                (pd.api.types.is_object_dtype(df[col]))
+                & ('date' in col)
+        ):
+            df[col] = pd.to_datetime(df[col], infer_datetime_format=True)
+        elif pd.api.types.is_object_dtype(df[col]):
+            df[col] = df[col].astype('string[pyarrow]')
+    return df
 
 
 def standardize_tags(tags_df, cols_to_coalesce):
