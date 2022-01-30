@@ -2,6 +2,7 @@ import logging
 
 import pandas as pd
 import streamlit as st
+import dask.dataframe as dd
 
 LOGGING_LEVEL = logging.INFO
 WORKS_CSV = 'not_added_to_git/ao3_official_dump_210321/works-20210226.csv'
@@ -57,9 +58,9 @@ def retrieve_preprocessed_data():
         - pandas DataFrame
     """
     logger.info('Loading previously preprocessed data')
-    non_fandom_tags_agg = pd.read_parquet(NON_FANDOM_TAGS_AGG_LOC)
-    works_with_fandom = pd.read_parquet(WORKS_WITH_FANDOM_LOC)
-    fandom_works_count = pd.read_parquet(FANDOM_WORKS_COUNT_LOC)
+    non_fandom_tags_agg = dd.read_parquet(NON_FANDOM_TAGS_AGG_LOC)
+    works_with_fandom = dd.read_parquet(WORKS_WITH_FANDOM_LOC)
+    fandom_works_count = dd.read_parquet(FANDOM_WORKS_COUNT_LOC)
     logger.info('Finished loading data')
     return non_fandom_tags_agg, works_with_fandom, fandom_works_count
 

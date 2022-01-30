@@ -8,6 +8,8 @@ class InterFandomAnalysis:
         self, non_fandom_tags_agg, works_with_fandom, fandom_works_count
     ):
         idx = pd.IndexSlice
+        non_fandom_tags_agg = non_fandom_tags_agg.compute()
+        fandom_works_count = fandom_works_count.compute()
         rel_tags = non_fandom_tags_agg.loc[idx[:, ['Relationship']], :]
         rel_tags = rel_tags.droplevel('type_final', axis=0).drop(
             columns='word_count_mean'

@@ -37,8 +37,8 @@ CHARACTER_COLUMN_NAMES = ['char_1', 'char_2']
 class Fandom:
     def __init__(self, name, works_with_fandom, non_fandom_tags_agg):
         self.name = name
-        non_fandom_tags_agg_for_fandom = non_fandom_tags_agg.loc[name, :]
-        self.works = works_with_fandom.loc[self.name]
+        non_fandom_tags_agg_for_fandom = non_fandom_tags_agg.loc[name, :].compute().droplevel('fandom_name')
+        self.works = works_with_fandom.loc[self.name].compute()
         self.relationships = self.retrieve_tags_by_type(
             non_fandom_tags_agg_for_fandom, 'Relationship'
         )
@@ -54,7 +54,8 @@ class Fandom:
             non_fandom_tags_agg_for_fandom, 'Freeform'
         )
 
-    def retrieve_tags_by_type(self, non_fandom_tags_agg, tag_type):
+    @staticmethod
+    def retrieve_tags_by_type(non_fandom_tags_agg, tag_type):
         """
         Retrieve works_tags_df by tag type
         :param non_fandom_tags_agg: DataFrame containing aggregated non-fandom
