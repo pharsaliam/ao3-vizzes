@@ -1,6 +1,6 @@
 import streamlit as st
 
-from utils import retrieve_preprocessed_data
+from utils import retrieve_preprocessed_data, MINIMUM_WORK_COUNT
 from analyses.fandom_level_analysis import FandomLevelAnalysis
 from analyses.inter_fandom_analysis import InterFandomAnalysis
 
@@ -40,9 +40,9 @@ def run():
     st.markdown('***')
     with st.expander('General methodology notes'):
         st.markdown(
-            '''
-            - Only fandoms with at least 100 works at the time of data 
-            collection are included in the analysis.
+            f'''
+            - Only fandoms with at least {MINIMUM_WORK_COUNT} works at the time 
+             of data collection are included in the analysis.
             - When selecting a fandom, please note that works with 
             equivalent tags are included, but not works with subtags. 
             For example, in the "DCU" tag, "DCU (Animated)" is an 

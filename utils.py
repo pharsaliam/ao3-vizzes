@@ -8,7 +8,7 @@ LOGGING_LEVEL = logging.INFO
 WORKS_CSV = 'not_added_to_git/ao3_official_dump_210321/works-20210226.csv'
 TAGS_CSV = 'not_added_to_git/ao3_official_dump_210321/tags-20210226.csv'
 WORKS_TAGS_PARQUET = 'not_added_to_git/preprocessed_works_tags.parquet.gzip'
-DATA_DIRECTORY = 'tmp_data'
+DATA_DIRECTORY = 'data'
 WORKS_WITH_FANDOM_LOC = f'{DATA_DIRECTORY}/works_with_fandom.parquet.gzip'
 NON_FANDOM_TAGS_AGG_LOC = f'{DATA_DIRECTORY}/non_fandom_tags_agg.parquet.gzip'
 FANDOM_WORKS_COUNT_LOC = f'{DATA_DIRECTORY}/fandom_works_count.parquet.gzip'
@@ -19,7 +19,7 @@ TAG_TYPES_TO_KEEP = [
     'Rating',
     'Fandom',
 ]
-MINIMUM_WORK_COUNT = 500
+MINIMUM_WORK_COUNT = 1000
 TAG_GROUPBY_LIST = ['fandom_name', 'name_final', 'type_final']
 TAG_GROUPBY_AGG = {'work_id': 'count', 'word_count': 'mean'}
 TO_PARQUET_CONFIG = {'index': 'False', 'compression': 'gzip'}
