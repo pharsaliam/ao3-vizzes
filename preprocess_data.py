@@ -202,7 +202,8 @@ def aggregate_works_tags_df(works_tags_df, minimum_work_count):
     return non_fandom_tags_agg, works_with_fandom, fandom_works_count
 
 
-def use_efficient_dtypes(df):
+def use_efficient_dtypes(df_u):
+    df = df_u.copy()
     for col in df.columns:
         if pd.api.types.is_integer_dtype(df[col]):
             df[col] = pd.to_numeric(df[col], downcast='integer')

@@ -22,7 +22,7 @@ TAG_TYPES_TO_KEEP = [
 MINIMUM_WORK_COUNT = 1000
 TAG_GROUPBY_LIST = ['fandom_name', 'name_final', 'type_final']
 TAG_GROUPBY_AGG = {'work_id': 'count', 'word_count': 'mean'}
-TO_PARQUET_CONFIG = {'index': 'False', 'compression': 'gzip'}
+TO_PARQUET_CONFIG = {'compression': 'gzip'}
 
 logger = logging.getLogger('LOG')
 logger.setLevel(LOGGING_LEVEL)
