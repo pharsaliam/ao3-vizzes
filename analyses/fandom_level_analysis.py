@@ -14,7 +14,7 @@ class FandomLevelAnalysis:
     def __init__(
         self, non_fandom_tags_agg, works_with_fandom, fandom_works_count
     ):
-        fandom_works_count = fandom_works_count.reset_index()
+        fandom_works_count = fandom_works_count.compute().reset_index()
         col1, col2 = st.columns([1, 2])
         fandom_order = col1.radio(
             'View fandom list ordered by', FANDOM_ORDER_LU

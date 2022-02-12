@@ -37,12 +37,13 @@ CHARACTER_COLUMN_NAMES = ['char_1', 'char_2']
 class Fandom:
     def __init__(self, name, works_with_fandom, non_fandom_tags_agg):
         self.name = name
-        self.works = works_with_fandom.loc[self.name]
+        non_fandom_tags_agg_for_fandom = non_fandom_tags_agg.loc[name, :].compute().droplevel('fandom_name')
+        self.works = works_with_fandom.loc[self.name].compute()
         self.relationships = self.retrieve_tags_by_type(
-            non_fandom_tags_agg, 'Relationship'
+            non_fandom_tags_agg_for_fandom, 'Relationship'
         )
         relationship_conditions = [
-            self.relationships['relationship_name'].str.contains(split)
+            np.array(self.relationships['relationship_name'].str.contains(split), dtype=bool)
             for split in RELATIONSHIP_SEPARATOR_LU.values()
         ]
         self.relationships['relationship_type'] = np.select(
@@ -50,10 +51,11 @@ class Fandom:
             [rel_type for rel_type in RELATIONSHIP_SEPARATOR_LU],
         )
         self.freeform_tags = self.retrieve_tags_by_type(
-            non_fandom_tags_agg, 'Freeform'
+            non_fandom_tags_agg_for_fandom, 'Freeform'
         )
 
-    def retrieve_tags_by_type(self, non_fandom_tags_agg, tag_type):
+    @staticmethod
+    def retrieve_tags_by_type(non_fandom_tags_agg, tag_type):
         """
         Retrieve works_tags_df by tag type
         :param non_fandom_tags_agg: DataFrame containing aggregated non-fandom
@@ -65,7 +67,7 @@ class Fandom:
         """
         assert tag_type in [s for s in TAG_TYPES_TO_KEEP if s != 'Fandom']
         df = (
-            non_fandom_tags_agg.loc[self.name, tag_type]
+            non_fandom_tags_agg.loc[tag_type]
             .rename(columns={'name_final': f'{tag_type.lower()}_name'})
             .reset_index(drop=True)
         )

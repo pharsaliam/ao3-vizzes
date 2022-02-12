@@ -2,21 +2,16 @@ import logging
 
 import pandas as pd
 import streamlit as st
+import dask.dataframe as dd
 
 LOGGING_LEVEL = logging.INFO
-WORKS_CSV = 'data/ao3_official_dump_210321/works-20210226.csv'
-TAGS_CSV = 'data/ao3_official_dump_210321/tags-20210226.csv'
+WORKS_CSV = 'not_added_to_git/ao3_official_dump_210321/works-20210226.csv'
+TAGS_CSV = 'not_added_to_git/ao3_official_dump_210321/tags-20210226.csv'
 WORKS_TAGS_PARQUET = 'not_added_to_git/preprocessed_works_tags.parquet.gzip'
-WWF_CHUNK_NUM = 2
-WORKS_WITH_FANDOM_LOCATIONS = [
-    f'data/works_with_fandom_{i}.parquet.gzip' for i in range(WWF_CHUNK_NUM)
-]
-TA_CHUNK_NUM = 3
-TAGS_AGGREGATED_LOCATIONS = [
-    f'data/non_fandoms_tags_aggregated_{i}.parquet.gzip'
-    for i in range(TA_CHUNK_NUM)
-]
-FANDOM_WORKS_COUNT_PARQUET = 'data/fandom_works_count.parquet.gzip'
+DATA_DIRECTORY = 'data'
+WORKS_WITH_FANDOM_LOC = f'{DATA_DIRECTORY}/works_with_fandom.parquet.gzip'
+NON_FANDOM_TAGS_AGG_LOC = f'{DATA_DIRECTORY}/non_fandom_tags_agg.parquet.gzip'
+FANDOM_WORKS_COUNT_LOC = f'{DATA_DIRECTORY}/fandom_works_count.parquet.gzip'
 TAG_TYPES_TO_KEEP = [
     'Relationship',
     'Freeform',
@@ -24,10 +19,10 @@ TAG_TYPES_TO_KEEP = [
     'Rating',
     'Fandom',
 ]
-MINIMUM_WORK_COUNT = 100
+MINIMUM_WORK_COUNT = 1000
 TAG_GROUPBY_LIST = ['fandom_name', 'name_final', 'type_final']
 TAG_GROUPBY_AGG = {'work_id': 'count', 'word_count': 'mean'}
-TO_PARQUET_CONFIG = {'index': 'False', 'compression': 'gzip'}
+TO_PARQUET_CONFIG = {'compression': 'gzip'}
 
 logger = logging.getLogger('LOG')
 logger.setLevel(LOGGING_LEVEL)
@@ -43,20 +38,9 @@ logger.propagate = False
 
 
 @st.experimental_memo(ttl=60*60*6)
-def retrieve_preprocessed_data(
-    tags_aggregated_locations=TAGS_AGGREGATED_LOCATIONS,
-    works_with_fandom_locations=WORKS_WITH_FANDOM_LOCATIONS,
-    fandom_count_location=FANDOM_WORKS_COUNT_PARQUET,
-):
+def retrieve_preprocessed_data():
     """
     Loads previously saved preprocessed and aggregated data
-    :param tags_aggregated_locations: Location of the aggregated non-fandom
-        tags data
-    :type tags_aggregated_locations: str
-    :param works_with_fandom_locations: Location of the works with fandom data
-    :type works_with_fandom_locations: str
-    :param fandom_count_location: Location of the fandom count data
-    :type fandom_count_location: str
     :return:
         - One row per fandom per non-fandom tag with count of works
         - One row per work per fandom
@@ -67,25 +51,9 @@ def retrieve_preprocessed_data(
         - pandas DataFrame
     """
     logger.info('Loading previously preprocessed data')
-    non_fandom_tags_agg = pd.DataFrame()
-    non_fandom_tags_agg = concat_data(
-        tags_aggregated_locations, non_fandom_tags_agg
-    )
-    works_with_fandom = pd.DataFrame()
-    works_with_fandom = concat_data(
-        works_with_fandom_locations, works_with_fandom
-    )
-    fandom_works_count = pd.read_parquet(fandom_count_location)
-    # TODO Remove this once the data files get refreshed
-    works_with_fandom = works_with_fandom.set_index(
-        ['fandom_name', 'work_id']
-    ).sort_index()
-    non_fandom_tags_agg = non_fandom_tags_agg.set_index(
-        ['fandom_name', 'type_final']
-    ).sort_index()
-    fandom_works_count = fandom_works_count.set_index(
-        'fandom_name'
-    ).sort_index()
+    non_fandom_tags_agg = dd.read_parquet(NON_FANDOM_TAGS_AGG_LOC)
+    works_with_fandom = dd.read_parquet(WORKS_WITH_FANDOM_LOC)
+    fandom_works_count = dd.read_parquet(FANDOM_WORKS_COUNT_LOC)
     logger.info('Finished loading data')
     return non_fandom_tags_agg, works_with_fandom, fandom_works_count
 
