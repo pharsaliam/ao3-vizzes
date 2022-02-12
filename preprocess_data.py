@@ -8,7 +8,6 @@ from utils import (
     NON_FANDOM_TAGS_AGG_LOC,
     WORKS_WITH_FANDOM_LOC,
     FANDOM_WORKS_COUNT_LOC,
-    DATA_DIRECTORY,
     MINIMUM_WORK_COUNT,
     TAG_TYPES_TO_KEEP,
     TO_PARQUET_CONFIG,
@@ -30,22 +29,10 @@ def preprocess_data(
     :type works_csv_location: str
     :param tags_csv_location: Location of AO3 data dump tags CSV
     :type tags_csv_location: str
-    :param works_tags_location: Location of file with one row per work per tag
-    :type works_tags_location: str
-    :param tags_aggregated_locations: Location of file with aggregated
-        non-fandom tag data
-    :type tags_aggregated_locations: str
-    :param works_with_fandom_locations: Location of file with one row per work
-        per fandom after filtering out rare fandoms
-    :type works_with_fandom_locations: str
-    :param fandom_count_location: Location of file with aggregated fandom work
-        count data
-    :type fandom_count_location: str
-    :param minimum_work_count: Minimum number of works a fandom must have to
-        be included in analysis
+    :param minimum_work_count: Minimum number of works fandom must have to be included in analysis
     :type minimum_work_count: int
-    :param flag_save_data: Whether or not to save the preprocessed data
-    :type flag_save_data: bool
+    :param flag_save_works_tags_df: Whether or not to save the works_tags_df
+    :type flag_save_works_tags_df: bool
     :return: None
     :rtype: None
     """

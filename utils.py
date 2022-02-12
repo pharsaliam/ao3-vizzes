@@ -41,13 +41,6 @@ logger.propagate = False
 def retrieve_preprocessed_data():
     """
     Loads previously saved preprocessed and aggregated data
-    :param tags_aggregated_locations: Location of the aggregated non-fandom
-        tags data
-    :type tags_aggregated_locations: str
-    :param works_with_fandom_locations: Location of the works with fandom data
-    :type works_with_fandom_locations: str
-    :param fandom_count_location: Location of the fandom count data
-    :type fandom_count_location: str
     :return:
         - One row per fandom per non-fandom tag with count of works
         - One row per work per fandom
