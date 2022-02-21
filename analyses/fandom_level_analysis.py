@@ -64,11 +64,11 @@ class FandomLevelAnalysis:
         st.subheader('Word Count Distribution')
         fig, ax = plt.subplots()
         (
-            ax,
+            fig,
             mean_word_count,
             median_word_count,
         ) = fandom.word_count_distribution()
         col1, col2 = st.columns(2)
         col1.metric('Mean', mean_word_count)
         col2.metric('Median', median_word_count)
-        st.pyplot(fig)
+        st.plotly_chart(fig, use_container_width=True)

@@ -24,6 +24,10 @@ TAG_GROUPBY_LIST = ['fandom_name', 'name_final', 'type_final']
 TAG_GROUPBY_AGG = {'work_id': 'count', 'word_count': 'mean'}
 TO_PARQUET_CONFIG = {'compression': 'gzip'}
 
+PX_TEMPLATE = 'ggplot2'
+PX_FONT_SIZE_AXES = 15
+PX_FONT_SIZE_TICKS = 13
+
 logger = logging.getLogger('LOG')
 logger.setLevel(LOGGING_LEVEL)
 ch = logging.StreamHandler()
