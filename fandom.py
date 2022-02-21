@@ -261,3 +261,29 @@ class Fandom:
         wc_bins_labels.append('>' + format_number(high_wc_upper_boundary))
         wc_bins_labels.insert(0, '<' + format_number(low_wc_step))
         return wc_bins, wc_bins_labels
+
+    def year_month_distribution(self):
+        self.works['creation_month'] = self.works['creation date'] + pd.offsets.MonthBegin(-1)
+        works_grouped_ym = self.works.groupby(
+            by=['creation_month']
+        )[['word_count']].count()
+        fig = px.bar(
+            works_grouped_ym,
+            labels={
+                'value': 'Number of Works',
+                'creation_month': 'Month Created'
+            },
+            hover_data={'variable': False},
+            template=PX_TEMPLATE
+        )
+        fig.update_layout(
+            yaxis=dict(tickformat="~s"),
+            font=dict(
+                size=PX_FONT_SIZE_TICKS,
+            ),
+            showlegend=False
+        )
+        fig.update_traces(
+            marker_color='#6eaf28',
+        )
+        return fig

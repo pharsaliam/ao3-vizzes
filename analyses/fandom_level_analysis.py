@@ -62,13 +62,15 @@ class FandomLevelAnalysis:
             )
         st.markdown('***')
         st.subheader('Word Count Distribution')
-        fig, ax = plt.subplots()
         (
-            fig,
+            fig_wc,
             mean_word_count,
             median_word_count,
         ) = fandom.word_count_distribution()
         col1, col2 = st.columns(2)
         col1.metric('Mean', mean_word_count)
         col2.metric('Median', median_word_count)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig_wc, use_container_width=True)
+        st.subheader('Works Over Time')
+        fig_ym = fandom.year_month_distribution()
+        st.plotly_chart(fig_ym, use_container_width=True)
