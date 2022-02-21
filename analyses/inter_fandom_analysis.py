@@ -58,7 +58,7 @@ class InterFandomAnalysis:
                 line=dict(width=1, color='darkslategrey'),
             ),
             hovertemplate="<b>%{customdata[0]}</b><br><br>"
-            + "Most Popular Relationship: %{customdata[1]}"
+            + "Most Popular Relationship: %{customdata[1]}<br>"
             + "Percent of Total Works in Fandom: %{x:.0%}<br>"
             + "Number of Total Works in Fandom: %{y:.3s}<br>",
         )
