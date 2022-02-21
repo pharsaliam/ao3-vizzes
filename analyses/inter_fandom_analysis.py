@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
+from utils import PX_TEMPLATE, PX_FONT_SIZE_AXES, PX_FONT_SIZE_TICKS
+
 
 class InterFandomAnalysis:
     def __init__(
@@ -50,6 +52,7 @@ class InterFandomAnalysis:
                 'works_num_fandom_total': 'Number of Total Works in Fandom',
             },
             opacity=0.8,
+            template=PX_TEMPLATE
         )
         fig.update_traces(
             marker=dict(
@@ -68,9 +71,11 @@ class InterFandomAnalysis:
             ),
             yaxis=dict(tickformat="~s"),
             font=dict(
-                size=15,
+                size=PX_FONT_SIZE_TICKS,
             ),
-            plot_bgcolor='#e0e0e0',
+        )
+        fig.update_xaxes(
+            rangeselector_font_size=PX_FONT_SIZE_AXES,
         )
         st.plotly_chart(fig, use_container_width=True)
         st.markdown(
