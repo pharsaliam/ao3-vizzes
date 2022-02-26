@@ -6,8 +6,12 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 from matplotlib.colors import LinearSegmentedColormap
 from mpl_chord_diagram import chord_diagram
+import plotly.express as px
 
-from utils import format_number, TAG_TYPES_TO_KEEP
+from utils import (
+    format_number, TAG_TYPES_TO_KEEP, PX_TEMPLATE,
+    PX_FONT_SIZE_AXES, PX_FONT_SIZE_TICKS
+)
 
 PLT_RC_PARAMS = {
     'figure.figsize': (20, 10),
@@ -175,7 +179,7 @@ class Fandom:
             (e.g., words counts greater than this will all be lumped together
             into the last bin)
         :param high_wc_step: Bin steps for high word count bins
-        :return: Matplotlib axis containing the binned word count distribution
+        :return: Plotly figure containing the binned word count distribution
             Mean word count
             Median word count
         """
@@ -194,18 +198,35 @@ class Fandom:
             labels=wc_bin_labels,
             include_lowest=True,
         )
-        ax = (
-            works_df.groupby(by='word_count_bin')['creation date']
-            .count()
-            .plot(kind='bar', color='green')
+        works_grouped_wc = works_df.groupby(
+            by=['word_count_bin']
+        )[['word_count']].count()
+        fig = px.bar(
+            works_grouped_wc,
+            labels={
+                'value': 'Number of Works',
+                'word_count_bin': 'Number of Words'
+            },
+            hover_data={'variable': False},
+            template=PX_TEMPLATE,
         )
-        ticks_loc = ax.get_yticks().tolist()
-        ax.yaxis.set_major_locator(mticker.FixedLocator(ticks_loc))
-        ax.set_yticklabels([format_number(s) for s in ticks_loc])
-        plt.xlabel('Word Count')
-        plt.ylabel('Number of Works')
-        plt.xticks(rotation=45, ha='right')
-        return ax, mean_word_count, median_word_count
+        fig.update_traces(
+            marker_color='green',
+            hovertemplate="Number of Words: %{x}<extra></extra><br>"
+                          + "Number of Works: %{y:.3s}",
+        )
+        fig.update_layout(
+            yaxis=dict(tickformat="~s"),
+            font=dict(
+                size=PX_FONT_SIZE_TICKS,
+            ),
+            showlegend=False
+        )
+        fig.update_xaxes(
+            tickangle=315,
+            rangeselector_font_size=PX_FONT_SIZE_AXES,
+        )
+        return fig, mean_word_count, median_word_count
 
     @staticmethod
     def generate_word_count_bins(
@@ -240,3 +261,29 @@ class Fandom:
         wc_bins_labels.append('>' + format_number(high_wc_upper_boundary))
         wc_bins_labels.insert(0, '<' + format_number(low_wc_step))
         return wc_bins, wc_bins_labels
+
+    def year_month_distribution(self):
+        self.works['creation_month'] = self.works['creation date'] + pd.offsets.MonthBegin(-1)
+        works_grouped_ym = self.works.groupby(
+            by=['creation_month']
+        )[['word_count']].count()
+        fig = px.bar(
+            works_grouped_ym,
+            labels={
+                'value': 'Number of Works',
+                'creation_month': 'Month Created'
+            },
+            hover_data={'variable': False},
+            template=PX_TEMPLATE
+        )
+        fig.update_layout(
+            yaxis=dict(tickformat="~s"),
+            font=dict(
+                size=PX_FONT_SIZE_TICKS,
+            ),
+            showlegend=False
+        )
+        fig.update_traces(
+            marker_color='#6eaf28',
+        )
+        return fig
