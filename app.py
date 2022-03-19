@@ -13,9 +13,10 @@ PAGE_TITLE = 'AO3 Data Visualizations'
 
 def run():
     st.set_page_config(
-        initial_sidebar_state='expanded',
+        initial_sidebar_state='auto',
         page_icon='👺',
-        page_title=PAGE_TITLE
+        page_title=PAGE_TITLE,
+        layout='wide',
     )
     (
         non_fandom_tags_agg,
